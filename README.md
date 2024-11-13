@@ -5,9 +5,3 @@ Term Project was developing a game called Rokue-Like.
  
 Group Members:
 
-.Akif Akbarov
-.Anvar Mikili
-.Bilge Tamtürk
-.Eda Engin
-.Onur Alp Kırcı
-.Yunus Emre Korkmaz
