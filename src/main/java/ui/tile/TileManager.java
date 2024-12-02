@@ -5,37 +5,30 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
 import javax.imageio.ImageIO;
 import ui.ui_main.GamePanel;
 
 /**
- * Manages tiles and the game's map, including loading tile images,
- * parsing map layouts, and rendering tiles on the screen.
+ * Manages tiles and the game's map, including loading tile images, parsing map layouts, and
+ * rendering tiles on the screen.
  */
 public class TileManager {
 
   /**
-   * The main game panel instance, used for accessing game configuration and
-   * rendering properties.
+   * The main game panel instance, used for accessing game configuration and rendering properties.
    */
   GamePanel gp;
 
-  /**
-   * Array of available tile types.
-   */
+  /** Array of available tile types. */
   Tile[] tile;
 
-  /**
-   * 2D array representing the tile numbers in the map.
-   */
+  /** 2D array representing the tile numbers in the map. */
   int mapTileNum[][];
 
   /**
    * Initializes the TileManager with the provided GamePanel.
-   * 
-   * @param gp The game panel instance that manages the game's primary
-   *           configurations.
+   *
+   * @param gp The game panel instance that manages the game's primary configurations.
    */
   public TileManager(GamePanel gp) {
     this.gp = gp;
@@ -48,9 +41,7 @@ public class TileManager {
     loadMap("/maps/map01.txt");
   }
 
-  /**
-   * Loads the tile images and associates them with tile types.
-   */
+  /** Loads the tile images and associates them with tile types. */
   public void getTileImage() {
     try {
       // Initialize floor tile
@@ -68,7 +59,7 @@ public class TileManager {
 
   /**
    * Loads a map file and populates the `mapTileNum` array with tile information.
-   * 
+   *
    * @param filePath Path to the map file to be loaded.
    */
   public void loadMap(String filePath) {
@@ -108,7 +99,7 @@ public class TileManager {
 
   /**
    * Draws the map on the screen using the tiles and their corresponding images.
-   * 
+   *
    * @param g2 The Graphics2D object used for rendering.
    */
   public void draw(Graphics2D g2) {

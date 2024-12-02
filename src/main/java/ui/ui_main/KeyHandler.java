@@ -3,15 +3,10 @@ package ui.ui_main;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-/**
- * Handles keyboard input for the game, mapping key presses and releases to
- * movement actions.
- */
+/** Handles keyboard input for the game, mapping key presses and releases to movement actions. */
 public class KeyHandler implements KeyListener {
 
-  /**
-   * Flags for directional input.
-   */
+  /** Flags for directional input. */
   public boolean upPressed, downPressed, leftPressed, rightPressed;
 
   @Override

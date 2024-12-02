@@ -9,9 +9,8 @@ import javax.swing.JPanel;
 import ui.tile.TileManager;
 
 /**
- * Represents the main game panel where all game logic, rendering, and updates
- * occur.
- * Implements the game loop and manages the hero, tiles, and input handling.
+ * Represents the main game panel where all game logic, rendering, and updates occur. Implements the
+ * game loop and manages the hero, tiles, and input handling.
  */
 public class GamePanel extends JPanel implements Runnable {
 
@@ -32,10 +31,7 @@ public class GamePanel extends JPanel implements Runnable {
   Thread gameThread; // Game loop thread
   Hero hero = new Hero(this, keyH);
 
-  /**
-   * Constructs the game panel, initializing its size, background, and input
-   * handling.
-   */
+  /** Constructs the game panel, initializing its size, background, and input handling. */
   public GamePanel() {
     this.setPreferredSize(new Dimension(screenWidth, screenHeight)); // Set preferred dimensions
     this.setBackground(Color.black); // Set background color to black
@@ -45,9 +41,7 @@ public class GamePanel extends JPanel implements Runnable {
     this.setFocusable(true); // Ensure the panel can receive key events
   }
 
-  /**
-   * Starts the game thread, initializing the game loop.
-   */
+  /** Starts the game thread, initializing the game loop. */
   public void startGameThread() {
     gameThread = new Thread(this);
     gameThread.start();
@@ -76,9 +70,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
   }
 
-  /**
-   * Updates the game state, including the hero's position and interactions.
-   */
+  /** Updates the game state, including the hero's position and interactions. */
   public void update() {
     hero.update();
   }

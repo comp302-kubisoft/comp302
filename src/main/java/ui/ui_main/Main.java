@@ -2,15 +2,12 @@ package ui.ui_main;
 
 import javax.swing.JFrame;
 
-/**
- * Entry point for the application. Sets up the main game window and initializes
- * the game panel.
- */
+/** Entry point for the application. Sets up the main game window and initializes the game panel. */
 public class Main {
 
   /**
    * Main method to start the application.
-   * 
+   *
    * @param args Command-line arguments (not used).
    */
   public static void main(String[] args) {
