@@ -1,14 +1,13 @@
-package entity;
+package domain.entity;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import main.GamePanel;
-import main.KeyHandler;
+import ui.GamePanel;
+import ui.KeyHandler;
 
 public class Hero extends Entity {
     GamePanel gp;
@@ -30,7 +29,7 @@ public class Hero extends Entity {
 
     public void getPlayerImage() {
         try {
-            imag = ImageIO.read(getClass().getResourceAsStream("/res/hero/player.png"));
+            imag = ImageIO.read(getClass().getResourceAsStream("/hero/player.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

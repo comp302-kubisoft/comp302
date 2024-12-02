@@ -1,4 +1,4 @@
-package entity;
+package domain.entity;
 
 import java.awt.image.BufferedImage;
 

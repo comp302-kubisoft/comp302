@@ -1,4 +1,4 @@
-package main;
+package ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,7 +7,7 @@ import java.awt.Graphics2D;
 
 import javax.swing.JPanel;
 
-import entity.Hero;
+import domain.entity.Hero;
 
 public class GamePanel extends JPanel implements Runnable {
     final int originalTileSize = 16; // 16x16 pixel tile
