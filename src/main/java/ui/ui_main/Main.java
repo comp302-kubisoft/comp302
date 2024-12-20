@@ -1,4 +1,3 @@
-//Yuno test
 package ui.ui_main;
 
 import javax.swing.JFrame;
