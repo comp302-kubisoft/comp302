@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 //Yuno test
-//Bilge test???????
+//Bilge test??!!!
+=======
+>>>>>>> branch 'main' of https://github.com/comp302-kubisoft/comp302.git
 package ui.ui_main;
 
 import javax.swing.JFrame;
