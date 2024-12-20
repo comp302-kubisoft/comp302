@@ -14,16 +14,14 @@ import ui.ui_main.GamePanel;
  */
 public class TileManager {
 
-  /**
-   * The main game panel instance, used for accessing game configuration and rendering properties.
-   */
+  /** The main game panel instance, used for accessing game configuration and rendering properties. */
   GamePanel gp;
 
   /** Array of available tile types. */
-  Tile[] tile;
+  public Tile[] tile;
 
   /** 2D array representing the tile numbers in the map. */
-  int mapTileNum[][];
+  public int mapTileNum[][];
 
   /**
    * Initializes the TileManager with the provided GamePanel.
@@ -47,14 +45,46 @@ public class TileManager {
       // Initialize floor tile
       tile[0] = new Tile();
       tile[0].image = ImageIO.read(getClass().getResourceAsStream("/tiles/floor_plain.png"));
+      tile[0].collision = false; // FLOOR TILE IS PASSABLE
 
       // Initialize wall tile
       tile[1] = new Tile();
       tile[1].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Wall_front.png"));
+      tile[1].collision = true; // WALL TILE IS IMPASSABLE - COLLISION SET TO TRUE
+
     } catch (IOException e) {
-      // Log and handle exceptions related to loading tile images
       e.printStackTrace();
     }
+  }
+
+  /**
+   * CHECKS FOR COLLISIONS AT ALL FOUR CORNERS OF THE HERO'S BOUNDING BOX.
+   *
+   * @param x The x-coordinate of the hero's position in pixels.
+   * @param y The y-coordinate of the hero's position in pixels.
+   * @param width The width of the hero (in pixels).
+   * @param height The height of the hero (in pixels).
+   * @return True if any of the corners intersect a collidable tile, false otherwise.
+   */
+  public boolean checkTileCollision(int x, int y, int width, int height) {
+    // CALCULATE TILE COORDINATES FOR THE FOUR CORNERS
+    int leftCol = x / gp.tileSize;
+    int rightCol = (x + width) / gp.tileSize;
+    int topRow = y / gp.tileSize;
+    int bottomRow = (y + height) / gp.tileSize;
+
+    // CHECK IF ANY CORNER IS OUT OF BOUNDS
+    if (leftCol < 0 || rightCol >= gp.maxScreenCol || topRow < 0 || bottomRow >= gp.maxScreenRow) {
+      return true; // Treat out-of-bounds as collidable
+    }
+
+    // CHECK TILE COLLISIONS AT ALL FOUR CORNERS
+    boolean topLeftCollision = tile[mapTileNum[leftCol][topRow]].collision;
+    boolean topRightCollision = tile[mapTileNum[rightCol][topRow]].collision;
+    boolean bottomLeftCollision = tile[mapTileNum[leftCol][bottomRow]].collision;
+    boolean bottomRightCollision = tile[mapTileNum[rightCol][bottomRow]].collision;
+
+    return topLeftCollision || topRightCollision || bottomLeftCollision || bottomRightCollision;
   }
 
   /**
@@ -64,25 +94,19 @@ public class TileManager {
    */
   public void loadMap(String filePath) {
     try {
-      // Open the map file for reading
       InputStream is = getClass().getResourceAsStream(filePath);
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
       int col = 0;
       int row = 0;
 
-      // Read the map line by line
       while (col < gp.maxScreenCol && row < gp.maxScreenRow) {
         String line = br.readLine();
 
         while (col < gp.maxScreenCol) {
           String numbers[] = line.split(" ");
-
-          // Parse the tile number and store it in the map array
           int num = Integer.parseInt(numbers[col]);
-
           mapTileNum[col][row] = num;
-
           col++;
         }
         if (col == gp.maxScreenCol) {
@@ -92,7 +116,6 @@ public class TileManager {
       }
       br.close();
     } catch (Exception e) {
-      // Handle exceptions gracefully
       e.printStackTrace();
     }
   }
@@ -108,20 +131,13 @@ public class TileManager {
     int x = 0;
     int y = 0;
 
-    // Iterate through the map grid
     while (col < gp.maxScreenCol && row < gp.maxScreenRow) {
-
-      // Get the tile number at the current position
       int tileNum = mapTileNum[col][row];
-
-      // Draw the tile at the calculated position
       g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
-      col++;
 
-      // Increment the x-coordinate for the next tile
+      col++;
       x += gp.tileSize;
 
-      // Move to the next row when the current row is complete
       if (col == gp.maxScreenCol) {
         col = 0;
         x = 0;
