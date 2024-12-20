@@ -26,10 +26,11 @@ public class GamePanel extends JPanel implements Runnable {
   int FPS = 60; // Target frames per second
 
   // Managers and components
-  TileManager tileM = new TileManager(this);
-  KeyHandler keyH = new KeyHandler();
-  Thread gameThread; // Game loop thread
-  Hero hero = new Hero(this, keyH);
+  InputState inputState; // INPUTSTATE INSTANCE ADDED
+  KeyHandler keyH;       // KEYHANDLER UPDATED
+  Thread gameThread;     // Game loop thread
+  public GameState gameState;   // GAMESTATE INSTANCE
+  Renderer renderer;     // RENDERER INSTANCE
 
   /** Constructs the game panel, initializing its size, background, and input handling. */
   public GamePanel() {
@@ -37,8 +38,20 @@ public class GamePanel extends JPanel implements Runnable {
     this.setBackground(Color.black); // Set background color to black
     this.setDoubleBuffered(true); // Enable double buffering for smoother rendering
 
+    // INITIALIZE INPUTSTATE
+    this.inputState = new InputState(); // INPUTSTATE INITIALIZED
+
+    // INITIALIZE KEYHANDLER WITH INPUTSTATE
+    this.keyH = new KeyHandler(inputState); // KEYHANDLER UPDATED TO USE INPUTSTATE
+
     this.addKeyListener(keyH); // Add the key listener for handling input
     this.setFocusable(true); // Ensure the panel can receive key events
+
+    // INITIALIZE GAMESTATE
+    this.gameState = new GameState(this, keyH);
+
+    // INITIALIZE RENDERER
+    this.renderer = new Renderer(gameState);
   }
 
   /** Starts the game thread, initializing the game loop. */
@@ -70,9 +83,10 @@ public class GamePanel extends JPanel implements Runnable {
     }
   }
 
-  /** Updates the game state, including the hero's position and interactions. */
+  /** Updates the game state. */
   public void update() {
-    hero.update();
+    // DELEGATE UPDATES TO GAMESTATE
+    gameState.update();
   }
 
   @Override
@@ -81,9 +95,8 @@ public class GamePanel extends JPanel implements Runnable {
 
     Graphics2D g2 = (Graphics2D) g;
 
-    // Draw game elements
-    tileM.draw(g2); // Render tiles
-    hero.draw(g2); // Render the hero
+    // DELEGATE RENDERING TO THE RENDERER
+    renderer.render(g2); // USE RENDERER TO DRAW GAMESTATE COMPONENTS
 
     g2.dispose(); // Release graphics resources
   }
