@@ -3,52 +3,59 @@ package ui.ui_main;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-/** Handles keyboard input for the game, mapping key presses and releases to movement actions. */
+/**
+ * Handles keyboard input for the game and updates the InputState.
+ * Acts as the Controller in the MVC architecture.
+ */
 public class KeyHandler implements KeyListener {
 
-  /** Flags for directional input. */
-  public boolean upPressed, downPressed, leftPressed, rightPressed;
+    InputState inputState; // INPUTSTATE ADDED
 
-  @Override
-  public void keyTyped(KeyEvent e) {
-    // Not used, but required by the KeyListener interface
-  }
+    /** Constructor to initialize the KeyHandler with an InputState. */
+    public KeyHandler(InputState inputState) { // CONSTRUCTOR UPDATED
+        this.inputState = inputState;
+    }
 
-  @Override
-  public void keyPressed(KeyEvent e) {
-    int code = e.getKeyCode();
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // Not used, but required by the KeyListener interface
+    }
 
-    // Map key presses to movement directions
-    if (code == KeyEvent.VK_W) {
-      upPressed = true;
-    }
-    if (code == KeyEvent.VK_S) {
-      downPressed = true;
-    }
-    if (code == KeyEvent.VK_A) {
-      leftPressed = true;
-    }
-    if (code == KeyEvent.VK_D) {
-      rightPressed = true;
-    }
-  }
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int code = e.getKeyCode();
 
-  @Override
-  public void keyReleased(KeyEvent e) {
-    int code = e.getKeyCode();
+        // MAP KEY PRESSES TO INPUTSTATE (WASD + ARROW KEYS)
+        if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+            inputState.upPressed = true;
+        }
+        if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+            inputState.downPressed = true;
+        }
+        if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
+            inputState.leftPressed = true;
+        }
+        if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+            inputState.rightPressed = true;
+        }
+    }
 
-    // Map key releases to stop movement in the corresponding direction
-    if (code == KeyEvent.VK_W) {
-      upPressed = false;
+    @Override
+    public void keyReleased(KeyEvent e) {
+        int code = e.getKeyCode();
+
+        // MAP KEY RELEASES TO INPUTSTATE (WASD + ARROW KEYS)
+        if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+            inputState.upPressed = false;
+        }
+        if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+            inputState.downPressed = false;
+        }
+        if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
+            inputState.leftPressed = false;
+        }
+        if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+            inputState.rightPressed = false;
+        }
     }
-    if (code == KeyEvent.VK_S) {
-      downPressed = false;
-    }
-    if (code == KeyEvent.VK_A) {
-      leftPressed = false;
-    }
-    if (code == KeyEvent.VK_D) {
-      rightPressed = false;
-    }
-  }
 }
