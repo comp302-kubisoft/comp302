@@ -3,6 +3,10 @@ package ui.render;
 import domain.model.GameMode;
 import domain.model.GameState;
 import java.awt.Graphics2D;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.BasicStroke;
+import java.awt.GradientPaint;
 import ui.menu.Menu;
 
 public class Renderer {
@@ -12,6 +16,12 @@ public class Renderer {
     private int screenWidth;
     private int screenHeight;
     private Menu menu;
+
+    // Theme colors matching the menu style
+    private final Color BACKGROUND_DARK = new Color(72, 44, 52);
+    private final Color WOOD_DARK = new Color(87, 61, 38);
+    private final Color WOOD_LIGHT = new Color(116, 82, 53);
+    private final Color TEXT_COLOR = new Color(231, 231, 231);
 
     public Renderer(GameState gameState, int tileSize, int screenWidth, int screenHeight) {
         this.gameState = gameState;
@@ -52,13 +62,88 @@ public class Renderer {
     }
 
     private void drawHelpScreen(Graphics2D g2) {
-        g2.setColor(java.awt.Color.BLACK);
+        // Background
+        g2.setColor(BACKGROUND_DARK);
         g2.fillRect(0, 0, screenWidth, screenHeight);
-        g2.setColor(java.awt.Color.WHITE);
-        g2.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 24));
-        g2.drawString("HELP SCREEN", screenWidth / 2 - 50, screenHeight / 2 - 100);
-        g2.setFont(new java.awt.Font("Arial", java.awt.Font.PLAIN, 18));
-        g2.drawString("Use arrow keys to move.", screenWidth / 2 - 100, screenHeight / 2 - 50);
-        g2.drawString("Press ESC to return to the menu.", screenWidth / 2 - 150, screenHeight / 2);
+        
+        // Wooden panel
+        int margin = 40;
+        int panelWidth = screenWidth - 2 * margin;
+        int panelHeight = screenHeight - 2 * margin;
+        
+        // Draw wooden background with gradient
+        GradientPaint woodGradient = new GradientPaint(
+            margin, margin, WOOD_DARK,
+            margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
+        g2.setPaint(woodGradient);
+        g2.fillRect(margin, margin, panelWidth, panelHeight);
+        
+        // Draw frame
+        g2.setColor(WOOD_DARK);
+        g2.setStroke(new BasicStroke(4));
+        g2.drawRect(margin, margin, panelWidth, panelHeight);
+        
+        // Draw wooden plank lines
+        int plankHeight = 30;
+        g2.setStroke(new BasicStroke(2));
+        for (int y = margin + plankHeight; y < margin + panelHeight; y += plankHeight) {
+            g2.drawLine(margin, y, margin + panelWidth, y);
+        }
+
+        // Draw title with shadow
+        g2.setFont(new Font("Monospaced", Font.BOLD, 40));
+        String title = "HELP SCREEN";
+        
+        // Shadow
+        g2.setColor(BACKGROUND_DARK);
+        g2.drawString(title, screenWidth/2 - 120 + 2, screenHeight/4 + 2);
+        
+        // Main title
+        g2.setColor(TEXT_COLOR);
+        g2.drawString(title, screenWidth/2 - 120, screenHeight/4);
+
+        // Draw help content
+        g2.setFont(new Font("Monospaced", Font.BOLD, 24));
+        String[] helpText = {
+            "CONTROLS",
+            "",
+            "WASD or Arrow Keys: Move character",
+            "ESC: Return to menu",
+            "",
+            "OBJECTIVE",
+            "",
+            "Explore the dungeon and survive!"
+        };
+
+        int startY = screenHeight/2 - 100;
+        int lineHeight = 35;
+        
+        for (String line : helpText) {
+            int textWidth = g2.getFontMetrics().stringWidth(line);
+            g2.drawString(line, screenWidth/2 - textWidth/2, startY);
+            startY += lineHeight;
+        }
+
+        // Draw return hint in wooden frame
+        String hint = "Press ESC to return";
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        
+        int hintY = screenHeight - 100;
+        int textWidth = g2.getFontMetrics().stringWidth(hint);
+        int boxWidth = textWidth + 40;
+        int boxHeight = 30;
+        int boxX = screenWidth/2 - boxWidth/2;
+        int boxY = hintY - 20;
+        
+        // Draw wooden frame for hint
+        g2.setColor(WOOD_DARK);
+        g2.fillRect(boxX, boxY, boxWidth, boxHeight);
+        g2.setColor(WOOD_LIGHT);
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRect(boxX, boxY, boxWidth, boxHeight);
+        
+        // Draw hint text
+        g2.setColor(TEXT_COLOR);
+        g2.drawString(hint, screenWidth/2 - textWidth/2, hintY);
     }
 }
