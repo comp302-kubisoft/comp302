@@ -17,7 +17,6 @@ public class Renderer {
     private int screenHeight;
     private Menu menu;
 
-    // Theme colors matching the menu style
     private final Color BACKGROUND_DARK = new Color(72, 44, 52);
     private final Color WOOD_DARK = new Color(87, 61, 38);
     private final Color WOOD_LIGHT = new Color(116, 82, 53);
@@ -62,47 +61,38 @@ public class Renderer {
     }
 
     private void drawHelpScreen(Graphics2D g2) {
-        // Background
         g2.setColor(BACKGROUND_DARK);
         g2.fillRect(0, 0, screenWidth, screenHeight);
         
-        // Wooden panel
         int margin = 40;
         int panelWidth = screenWidth - 2 * margin;
         int panelHeight = screenHeight - 2 * margin;
         
-        // Draw wooden background with gradient
         GradientPaint woodGradient = new GradientPaint(
             margin, margin, WOOD_DARK,
             margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
         g2.setPaint(woodGradient);
         g2.fillRect(margin, margin, panelWidth, panelHeight);
         
-        // Draw frame
         g2.setColor(WOOD_DARK);
         g2.setStroke(new BasicStroke(4));
         g2.drawRect(margin, margin, panelWidth, panelHeight);
         
-        // Draw wooden plank lines
         int plankHeight = 30;
         g2.setStroke(new BasicStroke(2));
         for (int y = margin + plankHeight; y < margin + panelHeight; y += plankHeight) {
             g2.drawLine(margin, y, margin + panelWidth, y);
         }
 
-        // Draw title with shadow
         g2.setFont(new Font("Monospaced", Font.BOLD, 40));
         String title = "HELP SCREEN";
         
-        // Shadow
         g2.setColor(BACKGROUND_DARK);
         g2.drawString(title, screenWidth/2 - 120 + 2, screenHeight/4 + 2);
         
-        // Main title
         g2.setColor(TEXT_COLOR);
         g2.drawString(title, screenWidth/2 - 120, screenHeight/4);
 
-        // Draw help content
         g2.setFont(new Font("Monospaced", Font.BOLD, 24));
         String[] helpText = {
             "CONTROLS",
@@ -124,7 +114,6 @@ public class Renderer {
             startY += lineHeight;
         }
 
-        // Draw return hint in wooden frame
         String hint = "Press ESC to return";
         g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
         
@@ -135,14 +124,12 @@ public class Renderer {
         int boxX = screenWidth/2 - boxWidth/2;
         int boxY = hintY - 20;
         
-        // Draw wooden frame for hint
         g2.setColor(WOOD_DARK);
         g2.fillRect(boxX, boxY, boxWidth, boxHeight);
         g2.setColor(WOOD_LIGHT);
         g2.setStroke(new BasicStroke(2));
         g2.drawRect(boxX, boxY, boxWidth, boxHeight);
         
-        // Draw hint text
         g2.setColor(TEXT_COLOR);
         g2.drawString(hint, screenWidth/2 - textWidth/2, hintY);
     }

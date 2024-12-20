@@ -1,7 +1,6 @@
 package ui.main;
 
 import javax.swing.JFrame;
-import ui.menu.Menu;
 
 public class Main {
 

@@ -23,7 +23,7 @@ public class GamePanel extends JPanel implements Runnable {
     public final int screenWidth = tileSize * maxScreenCol; 
     public final int screenHeight = tileSize * maxScreenRow; 
     private static final double FPS = 60.0;
-    private static final double DRAW_INTERVAL = 1000000000 / FPS; // 1 second = 1000000000 nanoseconds
+    private static final double DRAW_INTERVAL = 1000000000 / FPS;
 
     InputState inputState;
     KeyHandler keyH;
@@ -86,14 +86,12 @@ public class GamePanel extends JPanel implements Runnable {
             lastTime = currentTime;
 
             if (delta >= 1) {
-                // Update game state and repaint
                 update();
                 repaint();
                 delta--;
                 drawCount++;
             }
 
-            // Optional FPS counter
             if (timer >= 1000000000) {
                 System.out.println("FPS: " + drawCount);
                 drawCount = 0;
@@ -119,7 +117,6 @@ public class GamePanel extends JPanel implements Runnable {
         super.paintComponent(g);
         
         Graphics2D g2 = (Graphics2D) g;
-        // Enable antialiasing for smoother rendering
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
