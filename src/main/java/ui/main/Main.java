@@ -1,6 +1,7 @@
 package ui.main;
 
 import javax.swing.JFrame;
+import ui.menu.Menu;
 
 public class Main {
 
@@ -8,9 +9,10 @@ public class Main {
     JFrame window = new JFrame();
     window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     window.setResizable(false);
-    window.setTitle("Rokue-Like");
+    window.setTitle("Rogue-Like");
 
     GamePanel gamePanel = new GamePanel();
+    
     window.add(gamePanel);
     window.pack();
     window.setLocationRelativeTo(null);

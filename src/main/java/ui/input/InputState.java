@@ -1,15 +1,19 @@
 package ui.input;
 
 public class InputState {
-  public boolean upPressed = false;
-  public boolean downPressed = false;
-  public boolean leftPressed = false;
-  public boolean rightPressed = false;
+    public boolean upPressed = false;
+    public boolean downPressed = false;
+    public boolean leftPressed = false;
+    public boolean rightPressed = false;
+    public boolean enterPressed = false;
+    public boolean escapePressed = false;
 
-  public void reset() {
-    upPressed = false;
-    downPressed = false;
-    leftPressed = false;
-    rightPressed = false;
-  }
+    public void reset() {
+        upPressed = false;
+        downPressed = false;
+        leftPressed = false;
+        rightPressed = false;
+        enterPressed = false;
+        escapePressed = false;
+    }
 }
