@@ -6,7 +6,6 @@
 package domain.model;
 
 import domain.model.entity.Hero;
-import ui.main.GamePanel;
 import ui.tile.TileManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,19 +16,13 @@ public class GameState {
   private Hero hero;
   /** Manages the game's tile-based map */
   private TileManager tileManager;
-  
-  
   /** List of all objects placed in the game world */
-  ///private List<PlacedObject> placedObjects;
-  
-  private List<List<PlacedObject>> hallObjects; // One list per hall
-  
+  private List<PlacedObject> placedObjects;
+
   /** Starting coordinate of the game area (inclusive) */
   private static final int GAME_AREA_START = 2;
   /** Ending coordinate of the game area (inclusive) */
   private static final int GAME_AREA_END = 17;
-  
-  private int currentHallIndex = 0;
 
   /**
    * Represents an object placed in the game world.
@@ -75,11 +68,8 @@ public class GameState {
    */
   public GameState(int tileSize, int maxScreenCol, int maxScreenRow) {
     this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
-    //this.placedObjects = new ArrayList<>();
+    this.placedObjects = new ArrayList<>();
     this.hero = new Hero(this);
-    for (int i = 0; i < 4; i++) { // Four halls: earth, air, water, fire
-        hallObjects.add(new ArrayList<>()); // Initialize a list for each hall
-    }
   }
 
   /**
@@ -102,8 +92,8 @@ public class GameState {
    * @param gridY Y coordinate to check
    * @return true if the tile is occupied, false if it's empty
    */
-  public boolean isTileOccupied(int gridX, int gridY, int currentHallIndex) {
-    for (PlacedObject obj : hallObjects.get(currentHallIndex)) {
+  public boolean isTileOccupied(int gridX, int gridY) {
+    for (PlacedObject obj : placedObjects) {
       if (obj.gridX == gridX && obj.gridY == gridY) {
         return true;
       }
@@ -122,11 +112,10 @@ public class GameState {
    * @param gridX Grid X coordinate
    * @param gridY Grid Y coordinate
    */
-  public void addPlacedObject(int type, int x, int y, int gridX, int gridY, int currentHallIndex) {
-	  if (isWithinGameArea(gridX, gridY) && !isTileOccupied(gridX, gridY, currentHallIndex)) {
-	        PlacedObject newObject = new PlacedObject(type, x, y, gridX, gridY);
-	        hallObjects.get(currentHallIndex).add(newObject); // Add to the correct hall
-	  }
+  public void addPlacedObject(int type, int x, int y, int gridX, int gridY) {
+    if (isWithinGameArea(gridX, gridY) && !isTileOccupied(gridX, gridY)) {
+      placedObjects.add(new PlacedObject(type, x, y, gridX, gridY));
+    }
   }
 
   /**
@@ -134,15 +123,9 @@ public class GameState {
    * 
    * @return List of PlacedObject instances
    */
-  /*
   public List<PlacedObject> getPlacedObjects() {
     return placedObjects;
   }
-  */
-  
-  public List<PlacedObject> getObjectsForHall(int hallIndex) {
-	    return hallObjects.get(hallIndex);
-	}
 
   /**
    * Gets the hero entity.
@@ -179,30 +162,4 @@ public class GameState {
   public int getGameAreaEnd() {
     return GAME_AREA_END;
   }
-  
-  public int getCurrentHallIndex() {
-	    return currentHallIndex;
-  }
-
-  public void incrementHallIndex() {
-	    currentHallIndex++;
-  }
-  
-  public boolean handleProgressButtonClick(int x, int y, int screenWidth, int screenHeight, GamePanel gamePanel) {
-	    int buttonWidth = 200;
-	    int buttonHeight = 50;
-	    int buttonX = (screenWidth - buttonWidth) / 2;
-	    int buttonY = screenHeight - 100;
-
-	    if (x >= buttonX && x <= buttonX + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight) {
-	        if (currentHallIndex == 3) {
-	            gamePanel.setMode(GameMode.PLAY); // Start gameplay after the last hall
-	        } else {
-	            incrementHallIndex(); // Move to the next hall
-	            System.out.println("Moved to hall " + currentHallIndex);
-	        }
-	        return true; // Button was clicked
-	    }
-	    return false; // Button was not clicked
-	}
 }

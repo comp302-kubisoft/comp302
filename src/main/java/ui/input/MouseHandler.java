@@ -105,17 +105,14 @@ public class MouseHandler extends MouseAdapter {
         int gridX = x / tileSize;
         int gridY = y / tileSize;
 
-        int currentHallIndex = gameState.getCurrentHallIndex();
-        
         // Check if click is within the game area and tile is not occupied
-        if (gameState.isWithinGameArea(gridX, gridY) && !gameState.isTileOccupied(gridX, gridY, currentHallIndex)) {
+        if (gameState.isWithinGameArea(gridX, gridY) && !gameState.isTileOccupied(gridX, gridY)) {
             gameState.addPlacedObject(
                     renderer.getSelectedObjectIndex(),
                     gridX * tileSize,
                     gridY * tileSize,
                     gridX,
-                    gridY,
-                    currentHallIndex);
+                    gridY);
         }
     }
 }

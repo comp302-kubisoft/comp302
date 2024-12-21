@@ -109,9 +109,6 @@ public class GamePanel extends JPanel implements Runnable {
      */
     public void setMode(GameMode mode) {
         this.currentMode = mode;
-        if (mode == GameMode.BUILD) {
-            gameController.moveToNextHall(); // Transition to the next hall when Build Mode is activated
-        }
     }
 
     /**
