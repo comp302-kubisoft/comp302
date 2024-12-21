@@ -71,9 +71,11 @@ public class Hero extends Entity {
       int gridX = minX + random.nextInt(maxX - minX + 1);
       int gridY = minY + random.nextInt(maxY - minY + 1);
 
+      int currentHallIndex = gameState.getCurrentHallIndex();
+      
       // Check if position is valid (no wall or object)
       if (!tileManager.tile[tileManager.mapTileNum[gridX][gridY]].collision &&
-          !gameState.isTileOccupied(gridX, gridY)) {
+          !gameState.isTileOccupied(gridX, gridY, currentHallIndex)) {
 
         // Convert grid position to pixel coordinates
         x = gridX * tileSize;
@@ -130,8 +132,11 @@ public class Hero extends Entity {
     int topTile = newY / tileSize;
     int bottomTile = (newY + tileSize - 1) / tileSize;
 
+    // Fetch the current hall index
+    int currentHallIndex = gameState.getCurrentHallIndex();
+    
     // Check object collisions for all tiles the hero might overlap
-    for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
+    for (GameState.PlacedObject obj : gameState.getObjectsForHall(currentHallIndex)) {
       if ((obj.gridX >= leftTile && obj.gridX <= rightTile) &&
           (obj.gridY >= topTile && obj.gridY <= bottomTile)) {
         return true;

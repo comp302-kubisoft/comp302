@@ -39,6 +39,7 @@ public class Renderer {
     }
 
     public void render(Graphics2D g2, GameMode currentMode) {
+    	int currentHallIndex = gameState.getCurrentHallIndex();
         switch (currentMode) {
             case MENU:
                 if (menu != null) {
@@ -51,7 +52,7 @@ public class Renderer {
             case PLAY:
                 gameState.getTileManager().draw(g2);
                 // Draw placed objects first (behind the hero)
-                for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
+                for (GameState.PlacedObject obj : gameState.getObjectsForHall(currentHallIndex)) {
                     g2.drawImage(buildObjectManager.getImage(obj.type),
                             obj.x, obj.y, tileSize, tileSize, null);
                 }
@@ -65,6 +66,7 @@ public class Renderer {
                 break;
             case BUILD:
                 drawBuildMode(g2);
+                drawProgressButton(g2, screenWidth, screenHeight, currentHallIndex == 3); // Draw the button
                 break;
         }
     }
@@ -83,11 +85,12 @@ public class Renderer {
     }
 
     private void drawBuildMode(Graphics2D g2) {
+    	int currentHallIndex = gameState.getCurrentHallIndex();
         // Draw the main game area
         gameState.getTileManager().draw(g2);
 
         // Draw placed objects
-        for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
+        for (GameState.PlacedObject obj : gameState.getObjectsForHall(currentHallIndex)) {
             g2.drawImage(buildObjectManager.getImage(obj.type),
                     obj.x, obj.y, tileSize, tileSize, null);
         }
@@ -215,5 +218,22 @@ public class Renderer {
 
         g2.setColor(TEXT_COLOR);
         g2.drawString(hint, screenWidth / 2 - textWidth / 2, hintY);
+    }
+    
+    public void drawProgressButton(Graphics2D g2, int screenWidth, int screenHeight, boolean isLastHall) {
+        int buttonWidth = 200;
+        int buttonHeight = 50;
+        int buttonX = (screenWidth - buttonWidth) / 2;
+        int buttonY = screenHeight - 100;
+
+        g2.setColor(Color.BLUE);
+        g2.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+        g2.setColor(Color.WHITE);
+        g2.drawRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+        g2.setFont(new Font("Arial", Font.BOLD, 20));
+        String label = isLastHall ? "Play Game" : "Build Next Hall";
+        g2.drawString(label, buttonX + 40, buttonY + 30);
     }
 }

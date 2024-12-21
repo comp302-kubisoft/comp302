@@ -41,7 +41,10 @@ public class GameController {
     private int waterCount = 0;
     /** Counter for Fire hall objects */
     private int fireCount = 0;
+    
+    private static final int TOTAL_HALLS = 4;
 
+    
     /**
      * Initializes the game controller with necessary references and initial state.
      * 
@@ -170,5 +173,24 @@ public class GameController {
      */
     public Menu getMenu() {
         return menu;
+    }
+    
+    public void moveToNextHall() {
+        saveCurrentHallState(); // Save the current hall's state
+        gameState.incrementHallIndex();
+        if (gameState.getCurrentHallIndex() >= TOTAL_HALLS) {
+            gamePanel.setMode(GameMode.PLAY); // Start gameplay after the last hall
+        } else {
+            loadCurrentHallMap(); // Load the map for the next hall
+        }
+    }
+    private void loadCurrentHallMap() {
+        String mapPath = "/maps/map0" + (gameState.getCurrentHallIndex() + 1) + ".txt"; // picking the map file
+        gameState.getTileManager().loadMap(mapPath);
+    }
+
+    public void saveCurrentHallState() {
+        System.out.println("Saved state for hall " + (gameState.getCurrentHallIndex() + 1));
+        // GameState already tracks placed objects per hall
     }
 }
