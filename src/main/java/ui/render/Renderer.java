@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.BasicStroke;
 import java.awt.GradientPaint;
 import ui.menu.Menu;
+import ui.tile.BuildObjectManager;
 
 public class Renderer {
 
@@ -16,17 +17,21 @@ public class Renderer {
     private int screenWidth;
     private int screenHeight;
     private Menu menu;
+    private BuildObjectManager buildObjectManager;
 
     private final Color BACKGROUND_DARK = new Color(72, 44, 52);
     private final Color WOOD_DARK = new Color(87, 61, 38);
     private final Color WOOD_LIGHT = new Color(116, 82, 53);
     private final Color TEXT_COLOR = new Color(231, 231, 231);
 
+    private int selectedObjectIndex = -1; // -1 means no selection
+
     public Renderer(GameState gameState, int tileSize, int screenWidth, int screenHeight) {
         this.gameState = gameState;
         this.tileSize = tileSize;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        this.buildObjectManager = new BuildObjectManager();
     }
 
     public void setMenu(Menu menu) {
@@ -45,6 +50,12 @@ public class Renderer {
                 break;
             case PLAY:
                 gameState.getTileManager().draw(g2);
+                // Draw placed objects first (behind the hero)
+                for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
+                    g2.drawImage(buildObjectManager.getImage(obj.type),
+                            obj.x, obj.y, tileSize, tileSize, null);
+                }
+                // Draw hero on top
                 g2.drawImage(gameState.getHero().getImage(),
                         gameState.getHero().getX(),
                         gameState.getHero().getY(),
@@ -63,22 +74,73 @@ public class Renderer {
         render(g2, currentMode);
     }
 
-    private void drawBuildMode(Graphics2D g2) {
-        // Example placeholder: draw 4 small squares representing each hall
-        // In a real app, you might tile them or scale them as in your mockup.
-        g2.setColor(Color.DARK_GRAY);
-        // The squares below are just an example. Adjust coordinates & sizes as needed.
-        g2.fillRect(50, 50, 150, 150); // Earth
-        g2.fillRect(250, 50, 150, 150); // Air
-        g2.fillRect(50, 250, 150, 150); // Water
-        g2.fillRect(250, 250, 150, 150); // Fire
+    public void setSelectedObject(int index) {
+        this.selectedObjectIndex = index;
+    }
 
-        // Possibly show text with object counts or other build UI
-        g2.setColor(Color.WHITE);
-        g2.drawString("Earth Hall", 60, 45);
-        g2.drawString("Air Hall", 260, 45);
-        g2.drawString("Water Hall", 60, 245);
-        g2.drawString("Fire Hall", 260, 245);
+    public int getSelectedObjectIndex() {
+        return selectedObjectIndex;
+    }
+
+    private void drawBuildMode(Graphics2D g2) {
+        // Draw the main game area
+        gameState.getTileManager().draw(g2);
+
+        // Draw placed objects
+        for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
+            g2.drawImage(buildObjectManager.getImage(obj.type),
+                    obj.x, obj.y, tileSize, tileSize, null);
+        }
+
+        // Draw the build panel on the right
+        int panelMargin = 10;
+        int panelWidth = screenWidth / 5;
+        int panelX = screenWidth - panelWidth - panelMargin;
+        int panelHeight = screenHeight - 2 * panelMargin;
+        int panelY = panelMargin;
+
+        // Draw panel background with gradient
+        GradientPaint woodGradient = new GradientPaint(
+                panelX, panelY, WOOD_DARK,
+                panelX + panelWidth, panelY + panelHeight, WOOD_LIGHT);
+        g2.setPaint(woodGradient);
+        g2.fillRect(panelX, panelY, panelWidth, panelHeight);
+
+        // Draw panel border
+        g2.setColor(WOOD_DARK);
+        g2.setStroke(new BasicStroke(4));
+        g2.drawRect(panelX, panelY, panelWidth, panelHeight);
+
+        // Draw title
+        g2.setFont(new Font("Monospaced", Font.BOLD, 20));
+        g2.setColor(TEXT_COLOR);
+        String title = "Build Mode";
+        int titleWidth = g2.getFontMetrics().stringWidth(title);
+        g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
+
+        // Draw object slots with smaller size
+        int slotMargin = 10;
+        int slotSize = (panelWidth - 2 * slotMargin) / 2; // Half the previous size
+        int slotY = panelY + 50;
+        int slotSpacing = slotSize + 15; // Reduced spacing
+
+        for (int i = 0; i < buildObjectManager.getObjectCount(); i++) {
+            int currentSlotY = slotY + i * slotSpacing;
+
+            // Draw selection highlight if this object is selected
+            if (i == selectedObjectIndex) {
+                g2.setColor(new Color(255, 255, 255, 50));
+                g2.fillRect(panelX + slotMargin - 2, currentSlotY - 2, slotSize + 4, slotSize + 4);
+            }
+
+            // Draw slot background
+            g2.setColor(WOOD_DARK);
+            g2.fillRect(panelX + slotMargin, currentSlotY, slotSize, slotSize);
+
+            // Draw object image
+            g2.drawImage(buildObjectManager.getImage(i),
+                    panelX + slotMargin, currentSlotY, slotSize, slotSize, null);
+        }
     }
 
     private void drawHelpScreen(Graphics2D g2) {

@@ -1,3 +1,8 @@
+/**
+ * Manages the game's main menu interface.
+ * Handles menu rendering, option selection, and navigation between different game modes.
+ * Features a wooden-themed UI with interactive menu options.
+ */
 package ui.menu;
 
 import java.awt.Graphics2D;
@@ -8,31 +13,53 @@ import java.awt.GradientPaint;
 import domain.model.GameMode;
 
 public class Menu {
+    /** Currently selected menu option index */
     private int selectedOption = 0;
+    /** Available menu options */
     private final String[] options = { "Start Game", "Help", "Exit" };
+    /** Time of last input processing */
     private long lastInputTime = 0;
+    /** Minimum delay between input processing in milliseconds */
     private static final long INPUT_DELAY = 150;
 
+    /** Dark background color for menu */
     private final Color BACKGROUND_DARK = new Color(72, 44, 52);
+    /** Dark wood color for panel elements */
     private final Color WOOD_DARK = new Color(87, 61, 38);
+    /** Light wood color for panel elements */
     private final Color WOOD_LIGHT = new Color(116, 82, 53);
+    /** Color for menu text */
     private final Color TEXT_COLOR = new Color(231, 231, 231);
+    /** Color for selected menu option */
     private final Color SELECTED_COLOR = new Color(255, 255, 255);
+    /** Color for unselected menu options */
     private final Color UNSELECTED_COLOR = new Color(180, 180, 180);
 
+    /**
+     * Draws the menu interface.
+     * Renders the wooden panel background, title, options, and control hints.
+     * 
+     * @param g2           Graphics context to draw with
+     * @param screenWidth  Width of the game screen
+     * @param screenHeight Height of the game screen
+     */
     public void draw(Graphics2D g2, int screenWidth, int screenHeight) {
         g2.setColor(BACKGROUND_DARK);
         g2.fillRect(0, 0, screenWidth, screenHeight);
 
         drawWoodenPanel(g2, screenWidth, screenHeight);
-
         drawTitle(g2, screenWidth, screenHeight);
-
         drawOptions(g2, screenWidth, screenHeight);
-
         drawControlsHint(g2, screenWidth, screenHeight);
     }
 
+    /**
+     * Draws the wooden panel background with gradient and planks.
+     * 
+     * @param g2           Graphics context to draw with
+     * @param screenWidth  Width of the game screen
+     * @param screenHeight Height of the game screen
+     */
     private void drawWoodenPanel(Graphics2D g2, int screenWidth, int screenHeight) {
         int margin = 40;
         int panelWidth = screenWidth - 2 * margin;
@@ -55,6 +82,13 @@ public class Menu {
         }
     }
 
+    /**
+     * Draws the menu title with shadow effect.
+     * 
+     * @param g2           Graphics context to draw with
+     * @param screenWidth  Width of the game screen
+     * @param screenHeight Height of the game screen
+     */
     private void drawTitle(Graphics2D g2, int screenWidth, int screenHeight) {
         String title = "ROGUE-LIKE";
         g2.setFont(new Font("Monospaced", Font.BOLD, 40));
@@ -66,6 +100,13 @@ public class Menu {
         g2.drawString(title, screenWidth / 2 - 120, screenHeight / 4);
     }
 
+    /**
+     * Draws the menu options with selection highlighting.
+     * 
+     * @param g2           Graphics context to draw with
+     * @param screenWidth  Width of the game screen
+     * @param screenHeight Height of the game screen
+     */
     private void drawOptions(Graphics2D g2, int screenWidth, int screenHeight) {
         int startY = screenHeight / 2 - 30;
         g2.setFont(new Font("Monospaced", Font.BOLD, 24));
@@ -84,6 +125,13 @@ public class Menu {
         }
     }
 
+    /**
+     * Draws the controls hint box at the bottom of the menu.
+     * 
+     * @param g2           Graphics context to draw with
+     * @param screenWidth  Width of the game screen
+     * @param screenHeight Height of the game screen
+     */
     private void drawControlsHint(Graphics2D g2, int screenWidth, int screenHeight) {
         int hintY = screenHeight - 100;
         String controlsText = "WASD/Arrows: Move   Enter: Select";
@@ -107,6 +155,16 @@ public class Menu {
         g2.drawString(controlsText, screenWidth / 2 - textWidth / 2, hintY);
     }
 
+    /**
+     * Handles user input for menu navigation.
+     * Processes up/down movement and option selection.
+     * Includes input delay to prevent too rapid selection.
+     * 
+     * @param upPressed    Whether the up key is pressed
+     * @param downPressed  Whether the down key is pressed
+     * @param enterPressed Whether the enter key is pressed
+     * @return The selected GameMode, or MENU if no selection made
+     */
     public GameMode handleInput(boolean upPressed, boolean downPressed, boolean enterPressed) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastInputTime < INPUT_DELAY) {
