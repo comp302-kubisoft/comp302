@@ -30,7 +30,7 @@ public class GameController {
             boolean enter = inputState.enterPressed;
 
             GameMode newMode = menu.handleInput(up, down, enter);
-            
+
             if (newMode != GameMode.MENU) {
                 gamePanel.setMode(newMode);
                 inputState.reset();
@@ -71,6 +71,9 @@ public class GameController {
         if (inputState.escapePressed) {
             gamePanel.setMode(GameMode.MENU);
             inputState.reset();
+
+            // Reset the game state so starting a new game is always fresh
+            gamePanel.resetGameState();
             return;
         }
 

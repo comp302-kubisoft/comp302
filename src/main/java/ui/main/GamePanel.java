@@ -17,22 +17,22 @@ public class GamePanel extends JPanel implements Runnable {
 
     final int originalTileSize = 16;
     final int scale = 3;
-    public final int tileSize = originalTileSize * scale; 
-    public final int maxScreenCol = 16; 
-    public final int maxScreenRow = 12; 
-    public final int screenWidth = tileSize * maxScreenCol; 
-    public final int screenHeight = tileSize * maxScreenRow; 
+    public final int tileSize = originalTileSize * scale;
+    public final int maxScreenCol = 28;
+    public final int maxScreenRow = 20;
+    public final int screenWidth = tileSize * maxScreenCol;
+    public final int screenHeight = tileSize * maxScreenRow;
     private static final double FPS = 60.0;
     private static final double DRAW_INTERVAL = 1000000000 / FPS;
 
     InputState inputState;
     KeyHandler keyH;
     Thread gameThread;
-    public GameState gameState;   
+    public GameState gameState;
     Renderer renderer;
     GameController gameController;
 
-    private GameMode currentMode = GameMode.MENU; 
+    private GameMode currentMode = GameMode.MENU;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -80,7 +80,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         while (gameThread != null) {
             currentTime = System.nanoTime();
-            
+
             delta += (currentTime - lastTime) / DRAW_INTERVAL;
             timer += (currentTime - lastTime);
             lastTime = currentTime;
@@ -104,7 +104,7 @@ public class GamePanel extends JPanel implements Runnable {
         switch (currentMode) {
             case MENU:
             case HELP:
-                gameController.updateMenuOrHelpMode(); 
+                gameController.updateMenuOrHelpMode();
                 break;
             case PLAY:
                 gameController.updatePlayMode();
@@ -115,13 +115,25 @@ public class GamePanel extends JPanel implements Runnable {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
+
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         renderer.render(g2, this.currentMode);
-        
+
         g2.dispose();
     }
+
+    public void resetGameState() {
+        // Re-initialize the game state
+        this.gameState = new GameState(tileSize, maxScreenCol, maxScreenRow);
+
+        // Re-initialize the renderer with the new game state
+        this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight);
+
+        // Re-initialize the game controller
+        this.gameController = new GameController(gameState, inputState, this);
+    }
+
 }

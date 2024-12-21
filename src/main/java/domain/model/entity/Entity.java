@@ -35,12 +35,6 @@ public class Entity {
     this.y = y;
   }
 
-  public void draw(java.awt.Graphics2D g2) {
-    if (imag != null) {
-      g2.drawImage(imag, x, y, null);
-    }
-  }
-
   public void setX(int x) {
     this.x = x;
   }
