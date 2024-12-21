@@ -109,6 +109,9 @@ public class GamePanel extends JPanel implements Runnable {
             case PLAY:
                 gameController.updatePlayMode();
                 break;
+            case BUILD:
+                gameController.updateBuildMode();
+                break;
         }
     }
 

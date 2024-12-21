@@ -2,10 +2,8 @@ package ui.tile;
 
 import java.awt.Graphics2D;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import javax.imageio.ImageIO;
 
 public class TileManager {
 
@@ -27,15 +25,10 @@ public class TileManager {
 
   public void getTileImage() {
     try {
-      tile[0] = new Tile();
-      tile[0].image = ImageIO.read(getClass().getResourceAsStream("/tiles/floor_plain.png"));
-      tile[0].collision = false;
+      tile[0] = TileFactory.createTile("/tiles/floor_plain.png", false);
+      tile[1] = TileFactory.createTile("/tiles/Wall_front.png", true);
 
-      tile[1] = new Tile();
-      tile[1].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Wall_front.png"));
-      tile[1].collision = true;
-
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
