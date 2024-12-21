@@ -6,18 +6,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import javax.imageio.ImageIO;
-import ui.main.GamePanel;
 
 public class TileManager {
 
-  GamePanel gp;
+  private int tileSize;
+  private int maxScreenCol;
+  private int maxScreenRow;
   public Tile[] tile;
   public int[][] mapTileNum;
 
-  public TileManager(GamePanel gp) {
-    this.gp = gp;
+  public TileManager(int tileSize, int maxScreenCol, int maxScreenRow) {
+    this.tileSize = tileSize;
+    this.maxScreenCol = maxScreenCol;
+    this.maxScreenRow = maxScreenRow;
     tile = new Tile[10];
-    mapTileNum = new int[gp.maxScreenCol][gp.maxScreenRow];
+    mapTileNum = new int[maxScreenCol][maxScreenRow];
     getTileImage();
     loadMap("/maps/map01.txt");
   }
@@ -38,12 +41,12 @@ public class TileManager {
   }
 
   public boolean checkTileCollision(int x, int y, int width, int height) {
-    int leftCol = x / gp.tileSize;
-    int rightCol = (x + width) / gp.tileSize;
-    int topRow = y / gp.tileSize;
-    int bottomRow = (y + height) / gp.tileSize;
+    int leftCol = x / tileSize;
+    int rightCol = (x + width) / tileSize;
+    int topRow = y / tileSize;
+    int bottomRow = (y + height) / tileSize;
 
-    if (leftCol < 0 || rightCol >= gp.maxScreenCol || topRow < 0 || bottomRow >= gp.maxScreenRow) {
+    if (leftCol < 0 || rightCol >= maxScreenCol || topRow < 0 || bottomRow >= maxScreenRow) {
       return true;
     }
 
@@ -63,16 +66,16 @@ public class TileManager {
       int col = 0;
       int row = 0;
 
-      while (col < gp.maxScreenCol && row < gp.maxScreenRow) {
+      while (col < maxScreenCol && row < maxScreenRow) {
         String line = br.readLine();
 
-        while (col < gp.maxScreenCol) {
+        while (col < maxScreenCol) {
           String[] numbers = line.split(" ");
           int num = Integer.parseInt(numbers[col]);
           mapTileNum[col][row] = num;
           col++;
         }
-        if (col == gp.maxScreenCol) {
+        if (col == maxScreenCol) {
           col = 0;
           row++;
         }
@@ -89,17 +92,17 @@ public class TileManager {
     int x = 0;
     int y = 0;
 
-    while (col < gp.maxScreenCol && row < gp.maxScreenRow) {
+    while (col < maxScreenCol && row < maxScreenRow) {
       int tileNum = mapTileNum[col][row];
-      g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
+      g2.drawImage(tile[tileNum].image, x, y, tileSize, tileSize, null);
       col++;
-      x += gp.tileSize;
+      x += tileSize;
 
-      if (col == gp.maxScreenCol) {
+      if (col == maxScreenCol) {
         col = 0;
         x = 0;
         row++;
-        y += gp.tileSize;
+        y += tileSize;
       }
     }
   }

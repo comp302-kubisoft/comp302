@@ -9,6 +9,7 @@ public class Hero extends Entity {
 
   private BufferedImage image;
   private boolean spawnPositionSet = false;
+  private static final int DEFAULT_SPEED = 4;
 
   public Hero() {
     setDefaultValues();
@@ -16,7 +17,7 @@ public class Hero extends Entity {
   }
 
   private void setDefaultValues() {
-    speed = 4;
+    setSpeed(DEFAULT_SPEED);
     direction = "down";
     x = 0;
     y = 0;
@@ -53,12 +54,18 @@ public class Hero extends Entity {
   }
 
   public void moveIfPossible(int dx, int dy, TileManager tileManager, int tileSize) {
-    int nextX = x + dx;
-    int nextY = y + dy;
-
-    if (!tileManager.checkTileCollision(nextX, nextY, tileSize, tileSize)) {
-      x = nextX;
-      y = nextY;
+    if (dx != 0) {
+      int newX = x + dx;
+      if (!tileManager.checkTileCollision(newX, y, tileSize, tileSize)) {
+        x = newX;
+      }
+    }
+    
+    if (dy != 0) {
+      int newY = y + dy;
+      if (!tileManager.checkTileCollision(x, newY, tileSize, tileSize)) {
+        y = newY;
+      }
     }
   }
 
