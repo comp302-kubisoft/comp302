@@ -75,12 +75,31 @@ public class MouseHandler extends MouseAdapter {
             return;
         }
 
-        // Check if click is in the build panel
-        if (x >= screenWidth - panelWidth - panelMargin) {
-            handlePanelClick(x, y);
-        } else {
-            // Check if click is in the game area
-            handleGameAreaClick(x, y);
+        // Handle object checking in play mode
+        if (gamePanel.getMode() == GameMode.PLAY && !renderer.isPaused()) {
+            // Convert click coordinates to grid position
+            int gridX = x / tileSize;
+            int gridY = y / tileSize;
+
+            // Check if there's an object at the clicked position
+            if (gameState.isTileOccupied(gridX, gridY)) {
+                // Check if hero is adjacent to the object
+                if (gameState.isHeroAdjacent(gridX, gridY, tileSize)) {
+                    gameState.checkForRune(gridX, gridY);
+                }
+            }
+            return;
+        }
+
+        // Handle build mode clicks
+        if (gamePanel.getMode() == GameMode.BUILD) {
+            // Check if click is in the build panel
+            if (x >= screenWidth - panelWidth - panelMargin) {
+                handlePanelClick(x, y);
+            } else {
+                // Check if click is in the game area
+                handleGameAreaClick(x, y);
+            }
         }
     }
 

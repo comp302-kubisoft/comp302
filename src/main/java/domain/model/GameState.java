@@ -40,6 +40,8 @@ public class GameState {
     public final int gridX;
     /** Grid Y coordinate in the tile system */
     public final int gridY;
+    /** Whether this object has a rune */
+    public boolean hasRune;
 
     /**
      * Creates a new placed object with specified position and type.
@@ -56,6 +58,7 @@ public class GameState {
       this.y = y;
       this.gridX = gridX;
       this.gridY = gridY;
+      this.hasRune = false;
     }
   }
 
@@ -161,5 +164,65 @@ public class GameState {
    */
   public int getGameAreaEnd() {
     return GAME_AREA_END;
+  }
+
+  /**
+   * Assigns a rune to a random placed object.
+   * Should be called when transitioning from build to play mode.
+   */
+  public void assignRandomRune() {
+    if (placedObjects.isEmpty()) {
+      return;
+    }
+
+    // Clear any existing runes
+    for (PlacedObject obj : placedObjects) {
+      obj.hasRune = false;
+    }
+
+    // Select a random object to have the rune
+    int randomIndex = new java.util.Random().nextInt(placedObjects.size());
+    PlacedObject selectedObject = placedObjects.get(randomIndex);
+    selectedObject.hasRune = true;
+  }
+
+  /**
+   * Checks if the hero is adjacent to a given grid position.
+   * Adjacent means the hero is in a tile directly left, right, up, or down.
+   * 
+   * @param gridX    X coordinate to check
+   * @param gridY    Y coordinate to check
+   * @param tileSize Size of each tile in pixels
+   * @return true if hero is adjacent, false otherwise
+   */
+  public boolean isHeroAdjacent(int gridX, int gridY, int tileSize) {
+    // Get hero's grid position
+    int heroGridX = hero.getX() / tileSize;
+    int heroGridY = hero.getY() / tileSize;
+
+    // Check if hero is in any adjacent tile
+    return (Math.abs(heroGridX - gridX) == 1 && heroGridY == gridY) || // Left or right
+        (Math.abs(heroGridY - gridY) == 1 && heroGridX == gridX); // Up or down
+  }
+
+  /**
+   * Checks if an object at the given position has a rune.
+   * Returns true and prints a message if a rune is found.
+   * 
+   * @param gridX X coordinate to check
+   * @param gridY Y coordinate to check
+   * @return true if a rune was found, false otherwise
+   */
+  public boolean checkForRune(int gridX, int gridY) {
+    for (PlacedObject obj : placedObjects) {
+      if (obj.gridX == gridX && obj.gridY == gridY) {
+        if (obj.hasRune) {
+          System.out.println("You found a mystical rune!");
+          return true;
+        }
+        return false;
+      }
+    }
+    return false;
   }
 }

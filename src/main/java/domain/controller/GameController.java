@@ -114,6 +114,8 @@ public class GameController {
 
         // Transition to play mode when ready
         if (inputState.enterPressed) {
+            // Assign a random rune before transitioning
+            gameState.assignRandomRune();
             gamePanel.setMode(GameMode.PLAY);
             inputState.reset();
         }
