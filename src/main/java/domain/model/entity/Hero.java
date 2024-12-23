@@ -10,6 +10,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import ui.tile.TileManager;
 import domain.model.GameState;
+import domain.model.entity.Monster;
 import java.util.Random;
 
 public class Hero extends Entity {
@@ -24,6 +25,12 @@ public class Hero extends Entity {
   private GameState gameState;
   /** Random number generator for spawn position */
   private static final Random random = new Random();
+  /** Current health of the hero */
+  private int health;
+  /** Maximum possible health of the hero */
+  private static final int MAX_HEALTH = 4;
+  /** Starting health of the hero */
+  private static final int STARTING_HEALTH = 3;
 
   /**
    * Creates a new hero instance with a reference to the game state.
@@ -38,13 +45,14 @@ public class Hero extends Entity {
 
   /**
    * Sets the initial default values for the hero.
-   * Initializes position, speed, and direction.
+   * Initializes position, speed, direction, and health.
    */
   private void setDefaultValues() {
     setSpeed(DEFAULT_SPEED);
     direction = "down";
     x = 0;
     y = 0;
+    health = STARTING_HEALTH;
   }
 
   /**
@@ -110,7 +118,7 @@ public class Hero extends Entity {
 
   /**
    * Checks if a proposed position would result in a collision.
-   * Considers both wall tiles and placed objects.
+   * Considers wall tiles, placed objects, and monsters.
    * 
    * @param newX        Proposed x position
    * @param newY        Proposed y position
@@ -134,6 +142,19 @@ public class Hero extends Entity {
     for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
       if ((obj.gridX >= leftTile && obj.gridX <= rightTile) &&
           (obj.gridY >= topTile && obj.gridY <= bottomTile)) {
+        return true;
+      }
+    }
+
+    // Check monster collisions
+    for (Monster monster : gameState.getMonsters()) {
+      // Convert monster position to grid coordinates
+      int monsterGridX = monster.getX() / tileSize;
+      int monsterGridY = monster.getY() / tileSize;
+
+      // Check if monster overlaps with hero's proposed position
+      if ((monsterGridX >= leftTile && monsterGridX <= rightTile) &&
+          (monsterGridY >= topTile && monsterGridY <= bottomTile)) {
         return true;
       }
     }
@@ -204,5 +225,41 @@ public class Hero extends Entity {
    */
   public void setDirection(String direction) {
     this.direction = direction;
+  }
+
+  /**
+   * Gets the current health of the hero.
+   * 
+   * @return Current health value
+   */
+  public int getHealth() {
+    return health;
+  }
+
+  /**
+   * Gets the maximum possible health of the hero.
+   * 
+   * @return Maximum health value
+   */
+  public int getMaxHealth() {
+    return MAX_HEALTH;
+  }
+
+  /**
+   * Increases the hero's health by 1, up to the maximum.
+   */
+  public void gainHealth() {
+    if (health < MAX_HEALTH) {
+      health++;
+    }
+  }
+
+  /**
+   * Decreases the hero's health by 1.
+   */
+  public void loseHealth() {
+    if (health > 0) {
+      health--;
+    }
   }
 }
