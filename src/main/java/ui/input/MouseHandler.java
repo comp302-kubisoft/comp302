@@ -9,6 +9,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import ui.render.Renderer;
 import domain.model.GameState;
+import ui.main.GamePanel;
+import domain.model.GameMode;
 
 public class MouseHandler extends MouseAdapter {
     /** Reference to the game renderer for object selection */
@@ -23,6 +25,8 @@ public class MouseHandler extends MouseAdapter {
     private final int panelWidth;
     /** Margin around the build panel */
     private final int panelMargin;
+    /** Reference to the game panel */
+    private final GamePanel gamePanel;
 
     /**
      * Creates a new MouseHandler with necessary references for build mode
@@ -32,14 +36,16 @@ public class MouseHandler extends MouseAdapter {
      * @param gameState   Reference to the game state
      * @param tileSize    Size of each tile in pixels
      * @param screenWidth Total width of the game screen
+     * @param gamePanel   Reference to the game panel
      */
-    public MouseHandler(Renderer renderer, GameState gameState, int tileSize, int screenWidth) {
+    public MouseHandler(Renderer renderer, GameState gameState, int tileSize, int screenWidth, GamePanel gamePanel) {
         this.renderer = renderer;
         this.gameState = gameState;
         this.tileSize = tileSize;
         this.screenWidth = screenWidth;
         this.panelWidth = screenWidth / 5;
         this.panelMargin = 10;
+        this.gamePanel = gamePanel;
     }
 
     /**
@@ -53,6 +59,21 @@ public class MouseHandler extends MouseAdapter {
     public void mouseClicked(MouseEvent e) {
         int x = e.getX();
         int y = e.getY();
+
+        // Check if click is on the cross button
+        if (renderer.isWithinCrossButton(x, y)) {
+            if (gamePanel.getMode() == GameMode.PLAY || gamePanel.getMode() == GameMode.BUILD) {
+                gamePanel.setMode(GameMode.MENU);
+                gamePanel.resetGameState();
+                return;
+            }
+        }
+
+        // Check if click is on the pause button in play mode
+        if (gamePanel.getMode() == GameMode.PLAY && renderer.isWithinPauseButton(x, y)) {
+            renderer.togglePause();
+            return;
+        }
 
         // Check if click is in the build panel
         if (x >= screenWidth - panelWidth - panelMargin) {

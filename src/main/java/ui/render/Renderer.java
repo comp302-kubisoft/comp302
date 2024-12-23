@@ -18,6 +18,7 @@ public class Renderer {
     private int screenHeight;
     private Menu menu;
     private BuildObjectManager buildObjectManager;
+    private boolean isPaused = false;
 
     private final Color BACKGROUND_DARK = new Color(72, 44, 52);
     private final Color WOOD_DARK = new Color(87, 61, 38);
@@ -62,6 +63,15 @@ public class Renderer {
                         tileSize,
                         tileSize,
                         null);
+
+                // Draw pause overlay if game is paused
+                if (isPaused) {
+                    drawPauseOverlay(g2);
+                }
+
+                // Draw pause and cross buttons (always on top)
+                drawPauseButton(g2);
+                drawCrossButton(g2);
                 break;
             case BUILD:
                 drawBuildMode(g2);
@@ -141,6 +151,9 @@ public class Renderer {
             g2.drawImage(buildObjectManager.getImage(i),
                     panelX + slotMargin, currentSlotY, slotSize, slotSize, null);
         }
+
+        // Draw cross button on top of everything
+        drawCrossButton(g2);
     }
 
     private void drawHelpScreen(Graphics2D g2) {
@@ -215,5 +228,110 @@ public class Renderer {
 
         g2.setColor(TEXT_COLOR);
         g2.drawString(hint, screenWidth / 2 - textWidth / 2, hintY);
+    }
+
+    private void drawCrossButton(Graphics2D g2) {
+        int buttonSize = 30;
+        int margin = 10;
+        int x = screenWidth - buttonSize - margin;
+        int y = margin;
+
+        // Draw button background
+        g2.setColor(WOOD_DARK);
+        g2.fillRect(x, y, buttonSize, buttonSize);
+        g2.setColor(WOOD_LIGHT);
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRect(x, y, buttonSize, buttonSize);
+
+        // Draw X
+        g2.setColor(TEXT_COLOR);
+        g2.setStroke(new BasicStroke(2));
+        int padding = 8;
+        g2.drawLine(x + padding, y + padding, x + buttonSize - padding, y + buttonSize - padding);
+        g2.drawLine(x + buttonSize - padding, y + padding, x + padding, y + buttonSize - padding);
+    }
+
+    public boolean isWithinCrossButton(int mouseX, int mouseY) {
+        int buttonSize = 30;
+        int margin = 10;
+        int x = screenWidth - buttonSize - margin;
+        int y = margin;
+
+        return mouseX >= x && mouseX <= x + buttonSize &&
+                mouseY >= y && mouseY <= y + buttonSize;
+    }
+
+    private void drawPauseButton(Graphics2D g2) {
+        int buttonSize = 30;
+        int margin = 10;
+        int x = screenWidth - 2 * buttonSize - 2 * margin; // Position to the left of cross button
+        int y = margin;
+
+        // Draw button background
+        g2.setColor(WOOD_DARK);
+        g2.fillRect(x, y, buttonSize, buttonSize);
+        g2.setColor(WOOD_LIGHT);
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRect(x, y, buttonSize, buttonSize);
+
+        // Draw pause/play symbol
+        g2.setColor(TEXT_COLOR);
+        g2.setStroke(new BasicStroke(2));
+        int padding = 8;
+        if (!isPaused) {
+            // Draw pause symbol (two vertical lines)
+            int lineWidth = 4;
+            g2.fillRect(x + padding, y + padding, lineWidth, buttonSize - 2 * padding);
+            g2.fillRect(x + buttonSize - padding - lineWidth, y + padding, lineWidth, buttonSize - 2 * padding);
+        } else {
+            // Draw play symbol (triangle)
+            int[] xPoints = { x + padding, x + buttonSize - padding, x + padding };
+            int[] yPoints = { y + padding, y + buttonSize / 2, y + buttonSize - padding };
+            g2.fillPolygon(xPoints, yPoints, 3);
+        }
+    }
+
+    public boolean isWithinPauseButton(int mouseX, int mouseY) {
+        int buttonSize = 30;
+        int margin = 10;
+        int x = screenWidth - 2 * buttonSize - 2 * margin;
+        int y = margin;
+
+        return mouseX >= x && mouseX <= x + buttonSize &&
+                mouseY >= y && mouseY <= y + buttonSize;
+    }
+
+    public void togglePause() {
+        isPaused = !isPaused;
+    }
+
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    private void drawPauseOverlay(Graphics2D g2) {
+        // Store the original composite
+        java.awt.Composite originalComposite = g2.getComposite();
+
+        // Create a semi-transparent grey overlay
+        Color overlayColor = new Color(128, 128, 128, 180); // Grey with alpha
+        g2.setColor(overlayColor);
+
+        // Use alpha composite for transparency
+        g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.5f));
+
+        // Draw the overlay rectangle
+        g2.fillRect(0, 0, screenWidth, screenHeight);
+
+        // Draw "PAUSED" text
+        g2.setColor(TEXT_COLOR);
+        g2.setFont(new Font("Monospaced", Font.BOLD, 48));
+        String pausedText = "PAUSED";
+        int textWidth = g2.getFontMetrics().stringWidth(pausedText);
+        int textHeight = g2.getFontMetrics().getHeight();
+        g2.drawString(pausedText, screenWidth / 2 - textWidth / 2, screenHeight / 2 - textHeight / 2);
+
+        // Restore the original composite
+        g2.setComposite(originalComposite);
     }
 }
