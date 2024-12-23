@@ -81,7 +81,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.renderer.setMenu(menu);
         this.gameController = new GameController(gameState, inputState, this);
 
-        this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth);
+        this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
         this.addMouseListener(mouseH);
     }
 
@@ -174,7 +174,9 @@ public class GamePanel extends JPanel implements Runnable {
                 gameController.updateMenuOrHelpMode();
                 break;
             case PLAY:
-                gameController.updatePlayMode();
+                if (!renderer.isPaused()) {
+                    gameController.updatePlayMode();
+                }
                 break;
             case BUILD:
                 gameController.updateBuildMode();
@@ -218,7 +220,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.gameController = new GameController(gameState, inputState, this);
 
         // Re-initialize the mouse handler with the new renderer
-        this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth);
+        this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
         // Remove old mouse listener and add new one
         this.removeMouseListener(this.getMouseListeners()[0]);
         this.addMouseListener(mouseH);
