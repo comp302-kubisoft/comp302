@@ -2,6 +2,7 @@ package ui.render;
 
 import domain.model.GameMode;
 import domain.model.GameState;
+import domain.model.entity.Monster;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Font;
@@ -9,6 +10,11 @@ import java.awt.BasicStroke;
 import java.awt.GradientPaint;
 import ui.menu.Menu;
 import ui.tile.BuildObjectManager;
+import ui.main.GamePanel;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.awt.AlphaComposite;
 
 public class Renderer {
 
@@ -19,6 +25,8 @@ public class Renderer {
     private Menu menu;
     private BuildObjectManager buildObjectManager;
     private boolean isPaused = false;
+    private BufferedImage heartImage;
+    private GamePanel gamePanel;
 
     private final Color BACKGROUND_DARK = new Color(72, 44, 52);
     private final Color WOOD_DARK = new Color(87, 61, 38);
@@ -27,12 +35,22 @@ public class Renderer {
 
     private int selectedObjectIndex = -1; // -1 means no selection
 
-    public Renderer(GameState gameState, int tileSize, int screenWidth, int screenHeight) {
+    public Renderer(GameState gameState, int tileSize, int screenWidth, int screenHeight, GamePanel gamePanel) {
         this.gameState = gameState;
         this.tileSize = tileSize;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.buildObjectManager = new BuildObjectManager();
+        this.gamePanel = gamePanel;
+        loadHeartImage();
+    }
+
+    private void loadHeartImage() {
+        try {
+            heartImage = ImageIO.read(getClass().getResourceAsStream("/ui/heart.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setMenu(Menu menu) {
@@ -50,12 +68,25 @@ public class Renderer {
                 drawHelpScreen(g2);
                 break;
             case PLAY:
+                // Draw main game area
                 gameState.getTileManager().draw(g2);
-                // Draw placed objects first (behind the hero)
+
+                // Draw placed objects first (behind the hero and monsters)
                 for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
                     g2.drawImage(buildObjectManager.getImage(obj.type),
                             obj.x, obj.y, tileSize, tileSize, null);
                 }
+
+                // Draw monsters
+                for (Monster monster : gameState.getMonsters()) {
+                    g2.drawImage(monster.getImage(),
+                            monster.getX(),
+                            monster.getY(),
+                            tileSize,
+                            tileSize,
+                            null);
+                }
+
                 // Draw hero on top
                 g2.drawImage(gameState.getHero().getImage(),
                         gameState.getHero().getX(),
@@ -63,6 +94,9 @@ public class Renderer {
                         tileSize,
                         tileSize,
                         null);
+
+                // Draw right panel for UI elements
+                drawPlayModePanel(g2);
 
                 // Draw pause overlay if game is paused
                 if (isPaused) {
@@ -303,6 +337,7 @@ public class Renderer {
 
     public void togglePause() {
         isPaused = !isPaused;
+        gamePanel.getGameController().handlePauseState(isPaused);
     }
 
     public boolean isPaused() {
@@ -333,5 +368,57 @@ public class Renderer {
 
         // Restore the original composite
         g2.setComposite(originalComposite);
+    }
+
+    private void drawPlayModePanel(Graphics2D g2) {
+        int panelMargin = 10;
+        int panelWidth = screenWidth / 5;
+        int panelX = screenWidth - panelWidth - panelMargin;
+        int panelHeight = screenHeight - 2 * panelMargin;
+        int panelY = panelMargin;
+
+        // Draw panel background with gradient
+        GradientPaint woodGradient = new GradientPaint(
+                panelX, panelY, WOOD_DARK,
+                panelX + panelWidth, panelY + panelHeight, WOOD_LIGHT);
+        g2.setPaint(woodGradient);
+        g2.fillRect(panelX, panelY, panelWidth, panelHeight);
+
+        // Draw panel border
+        g2.setColor(WOOD_DARK);
+        g2.setStroke(new BasicStroke(4));
+        g2.drawRect(panelX, panelY, panelWidth, panelHeight);
+
+        // Draw title
+        g2.setFont(new Font("Monospaced", Font.BOLD, 20));
+        g2.setColor(TEXT_COLOR);
+        String title = "Status";
+        int titleWidth = g2.getFontMetrics().stringWidth(title);
+        g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
+
+        // Draw hearts
+        if (heartImage != null) {
+            int heartSize = 30;
+            int heartY = panelY + 50;
+            int heartSpacing = 5;
+            int totalHeartsWidth = (heartSize * gameState.getHero().getMaxHealth()) +
+                    (heartSpacing * (gameState.getHero().getMaxHealth() - 1));
+            int heartsStartX = panelX + (panelWidth - totalHeartsWidth) / 2;
+
+            // Draw all heart containers (grayed out)
+            for (int i = 0; i < gameState.getHero().getMaxHealth(); i++) {
+                int heartX = heartsStartX + (heartSize + heartSpacing) * i;
+                // Draw grayed out heart
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+                g2.drawImage(heartImage, heartX, heartY, heartSize, heartSize, null);
+            }
+
+            // Draw filled hearts for current health
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+            for (int i = 0; i < gameState.getHero().getHealth(); i++) {
+                int heartX = heartsStartX + (heartSize + heartSpacing) * i;
+                g2.drawImage(heartImage, heartX, heartY, heartSize, heartSize, null);
+            }
+        }
     }
 }

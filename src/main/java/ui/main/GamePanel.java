@@ -76,7 +76,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.setFocusable(true);
 
         this.gameState = new GameState(tileSize, maxScreenCol, maxScreenRow);
-        this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight);
+        this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
         this.menu = new Menu();
         this.renderer.setMenu(menu);
         this.gameController = new GameController(gameState, inputState, this);
@@ -127,6 +127,15 @@ public class GamePanel extends JPanel implements Runnable {
      */
     public Renderer getRenderer() {
         return renderer;
+    }
+
+    /**
+     * Gets the current game controller instance.
+     * 
+     * @return The GameController object handling game logic
+     */
+    public GameController getGameController() {
+        return gameController;
     }
 
     /**
@@ -213,7 +222,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.gameState = new GameState(tileSize, maxScreenCol, maxScreenRow);
 
         // Re-initialize the renderer with the new game state
-        this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight);
+        this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
         this.renderer.setMenu(menu); // Keep the menu reference
 
         // Re-initialize the game controller

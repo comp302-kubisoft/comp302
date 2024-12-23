@@ -143,4 +143,13 @@ public class TileManager {
       }
     }
   }
+
+  /**
+   * Gets the size of each tile in pixels.
+   * 
+   * @return The tile size
+   */
+  public int getTileSize() {
+    return tileSize;
+  }
 }

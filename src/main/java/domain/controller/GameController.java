@@ -7,9 +7,11 @@ package domain.controller;
 import domain.model.GameMode;
 import domain.model.GameState;
 import domain.model.entity.Hero;
+import domain.model.entity.Monster;
 import ui.input.InputState;
 import ui.main.GamePanel;
 import ui.menu.Menu;
+import java.util.Random;
 
 public class GameController {
 
@@ -23,6 +25,14 @@ public class GameController {
     private boolean spawnPositionSet = false;
     /** Manages menu state and interactions */
     private Menu menu;
+    /** Time of last monster spawn */
+    private long lastMonsterSpawnTime;
+    /** Time when the game was last paused */
+    private long pauseStartTime;
+    /** Accumulated pause duration */
+    private long pauseDuration;
+    /** Interval between monster spawns in milliseconds */
+    private static final long MONSTER_SPAWN_INTERVAL = 8000; // 8 seconds
 
     /** Minimum required objects for Earth hall */
     private static final int MIN_EARTH = 6;
@@ -116,14 +126,33 @@ public class GameController {
         if (inputState.enterPressed) {
             // Assign a random rune before transitioning
             gameState.assignRandomRune();
+            // Initialize monster spawn timer when entering play mode
+            lastMonsterSpawnTime = System.currentTimeMillis();
+            pauseDuration = 0;
             gamePanel.setMode(GameMode.PLAY);
             inputState.reset();
         }
     }
 
     /**
+     * Called when the game is paused or unpaused.
+     * 
+     * @param isPaused true if game is being paused, false if being unpaused
+     */
+    public void handlePauseState(boolean isPaused) {
+        if (isPaused) {
+            // Record when the pause started
+            pauseStartTime = System.currentTimeMillis();
+        } else {
+            // Add the pause duration to total pause time
+            pauseDuration += System.currentTimeMillis() - pauseStartTime;
+        }
+    }
+
+    /**
      * Updates the play mode state.
-     * Handles hero movement, spawn position, and game interactions during gameplay.
+     * Handles hero movement, spawn position, monster spawning, and game
+     * interactions during gameplay.
      */
     public void updatePlayMode() {
         Hero hero = gameState.getHero();
@@ -132,6 +161,20 @@ public class GameController {
         if (!spawnPositionSet) {
             hero.setSpawnPosition(gameState.getTileManager(), gamePanel.getTileSize());
             spawnPositionSet = true;
+        }
+
+        // Handle monster spawning and updates only if not paused
+        if (!gamePanel.getRenderer().isPaused()) {
+            long currentTime = System.currentTimeMillis();
+            // Adjust the comparison time by subtracting pause duration
+            long adjustedTime = currentTime - pauseDuration;
+            if (adjustedTime - lastMonsterSpawnTime >= MONSTER_SPAWN_INTERVAL) {
+                spawnRandomMonster();
+                lastMonsterSpawnTime = adjustedTime;
+            }
+
+            // Update monster states and interactions
+            gameState.updateMonsters();
         }
 
         // Handle hero movement
@@ -163,6 +206,28 @@ public class GameController {
         // Update hero state
         hero.setDirection(direction);
         hero.moveIfPossible(dx, dy, gameState.getTileManager(), gamePanel.getTileSize());
+    }
+
+    /**
+     * Spawns a random monster at a random empty location.
+     * Only spawns if we haven't reached the maximum monster limit.
+     */
+    private void spawnRandomMonster() {
+        // Get a random empty position
+        int[] position = gameState.findRandomEmptyPosition();
+        if (position == null)
+            return; // No empty positions available
+
+        // Choose a random monster type
+        Monster.Type[] monsterTypes = Monster.Type.values();
+        Monster.Type randomType = monsterTypes[new Random().nextInt(monsterTypes.length)];
+
+        // Create and add the monster
+        Monster monster = new Monster(randomType, position[0], position[1]);
+        if (!gameState.addMonster(monster)) {
+            // Monster wasn't added because we're at max capacity
+            return;
+        }
     }
 
     /**
