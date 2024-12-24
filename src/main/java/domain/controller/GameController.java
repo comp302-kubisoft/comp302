@@ -34,24 +34,6 @@ public class GameController {
     /** Interval between monster spawns in milliseconds */
     private static final long MONSTER_SPAWN_INTERVAL = 8000; // 8 seconds
 
-    /** Minimum required objects for Earth hall */
-    private static final int MIN_EARTH = 6;
-    /** Minimum required objects for Air hall */
-    private static final int MIN_AIR = 9;
-    /** Minimum required objects for Water hall */
-    private static final int MIN_WATER = 13;
-    /** Minimum required objects for Fire hall */
-    private static final int MIN_FIRE = 17;
-
-    /** Counter for Earth hall objects */
-    private int earthCount = 0;
-    /** Counter for Air hall objects */
-    private int airCount = 0;
-    /** Counter for Water hall objects */
-    private int waterCount = 0;
-    /** Counter for Fire hall objects */
-    private int fireCount = 0;
-
     /**
      * Initializes the game controller with necessary references and initial state.
      * 
@@ -102,24 +84,6 @@ public class GameController {
             inputState.reset();
             gamePanel.resetGameState();
             return;
-        }
-
-        // Handle object placement with keyboard (legacy/placeholder logic)
-        if (inputState.upPressed) {
-            earthCount++;
-            inputState.upPressed = false;
-        }
-        if (inputState.downPressed) {
-            airCount++;
-            inputState.downPressed = false;
-        }
-        if (inputState.leftPressed) {
-            waterCount++;
-            inputState.leftPressed = false;
-        }
-        if (inputState.rightPressed) {
-            fireCount++;
-            inputState.rightPressed = false;
         }
 
         // Transition to play mode when ready

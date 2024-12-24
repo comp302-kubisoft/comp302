@@ -10,7 +10,6 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import ui.tile.TileManager;
 import domain.model.GameState;
-import domain.model.entity.Monster;
 import java.util.Random;
 
 public class Hero extends Entity {

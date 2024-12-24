@@ -11,7 +11,7 @@ public class Main {
     window.setTitle("Rogue-Like");
 
     GamePanel gamePanel = new GamePanel();
-    
+
     window.add(gamePanel);
     window.pack();
     window.setLocationRelativeTo(null);
