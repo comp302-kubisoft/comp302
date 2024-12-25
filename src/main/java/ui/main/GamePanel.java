@@ -180,6 +180,7 @@ public class GamePanel extends JPanel implements Runnable {
         switch (currentMode) {
             case MENU:
             case HELP:
+            case GAME_OVER:
                 gameController.updateMenuOrHelpMode();
                 break;
             case PLAY:

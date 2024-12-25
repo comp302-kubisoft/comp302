@@ -4,5 +4,6 @@ public enum GameMode {
     MENU,
     PLAY,
     HELP,
-    BUILD
+    BUILD,
+    GAME_OVER
 }

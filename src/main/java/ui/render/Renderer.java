@@ -67,6 +67,9 @@ public class Renderer {
             case HELP:
                 drawHelpScreen(g2);
                 break;
+            case GAME_OVER:
+                drawGameOverScreen(g2);
+                break;
             case PLAY:
                 // Draw main game area
                 gameState.getTileManager().draw(g2);
@@ -162,7 +165,7 @@ public class Renderer {
         int titleWidth = g2.getFontMetrics().stringWidth(title);
         g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
 
-        // Draw object slots with smaller size
+        // Draw object slots
         int slotMargin = 10;
         int slotSize = (panelWidth - 2 * slotMargin) / 2; // Half the previous size
         int slotY = panelY + 50;
@@ -420,5 +423,25 @@ public class Renderer {
                 g2.drawImage(heartImage, heartX, heartY, heartSize, heartSize, null);
             }
         }
+    }
+
+    private void drawGameOverScreen(Graphics2D g2) {
+        // Draw dark overlay
+        g2.setColor(new Color(0, 0, 0, 200));
+        g2.fillRect(0, 0, screenWidth, screenHeight);
+
+        // Draw "GAME OVER" text
+        g2.setColor(Color.RED);
+        g2.setFont(new Font("Monospaced", Font.BOLD, 64));
+        String gameOverText = "GAME OVER";
+        int textWidth = g2.getFontMetrics().stringWidth(gameOverText);
+        g2.drawString(gameOverText, screenWidth / 2 - textWidth / 2, screenHeight / 2);
+
+        // Draw hint text
+        g2.setColor(TEXT_COLOR);
+        g2.setFont(new Font("Monospaced", Font.BOLD, 24));
+        String hintText = "Press ESC to return to menu";
+        textWidth = g2.getFontMetrics().stringWidth(hintText);
+        g2.drawString(hintText, screenWidth / 2 - textWidth / 2, screenHeight / 2 + 60);
     }
 }

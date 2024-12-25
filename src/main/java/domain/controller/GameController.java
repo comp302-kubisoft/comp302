@@ -51,7 +51,7 @@ public class GameController {
     }
 
     /**
-     * Updates the menu and help modes based on user input.
+     * Updates the menu, help, and game over modes based on user input.
      * Handles mode transitions and input processing for menu navigation.
      */
     public void updateMenuOrHelpMode() {
@@ -66,10 +66,11 @@ public class GameController {
                 gamePanel.setMode(newMode);
                 inputState.reset();
             }
-        } else if (gamePanel.getMode() == GameMode.HELP) {
+        } else if (gamePanel.getMode() == GameMode.HELP || gamePanel.getMode() == GameMode.GAME_OVER) {
             if (inputState.escapePressed) {
                 gamePanel.setMode(GameMode.MENU);
                 inputState.reset();
+                gamePanel.resetGameState();
             }
         }
     }
@@ -120,6 +121,13 @@ public class GameController {
      */
     public void updatePlayMode() {
         Hero hero = gameState.getHero();
+
+        // Check for game over condition
+        if (hero.getHealth() <= 0) {
+            gamePanel.setMode(GameMode.GAME_OVER);
+            inputState.reset();
+            return;
+        }
 
         // Set initial spawn position if not set
         if (!spawnPositionSet) {
