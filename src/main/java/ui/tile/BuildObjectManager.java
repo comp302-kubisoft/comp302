@@ -22,6 +22,14 @@ public class BuildObjectManager {
             "/objects/vase.png"
     };
 
+    private static final String[] OBJECT_NAMES = {
+            "Chest",
+            "Barrel",
+            "Torch",
+            "Skull",
+            "Vase"
+    };
+
     /**
      * Initializes the BuildObjectManager and loads all object images.
      * Images are loaded from the resources specified in IMAGE_PATHS.
@@ -66,5 +74,12 @@ public class BuildObjectManager {
      */
     public int getObjectCount() {
         return objectImages.length;
+    }
+
+    public String getObjectName(int index) {
+        if (index >= 0 && index < OBJECT_NAMES.length) {
+            return OBJECT_NAMES[index];
+        }
+        return "";
     }
 }

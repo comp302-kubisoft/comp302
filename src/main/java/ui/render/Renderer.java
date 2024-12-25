@@ -171,6 +171,9 @@ public class Renderer {
         int slotY = panelY + 50;
         int slotSpacing = slotSize + 15; // Reduced spacing
 
+        g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        int textMargin = 10;
+
         for (int i = 0; i < buildObjectManager.getObjectCount(); i++) {
             int currentSlotY = slotY + i * slotSpacing;
 
@@ -187,6 +190,12 @@ public class Renderer {
             // Draw object image
             g2.drawImage(buildObjectManager.getImage(i),
                     panelX + slotMargin, currentSlotY, slotSize, slotSize, null);
+
+            // Draw object name
+            g2.setColor(TEXT_COLOR);
+            String objectName = buildObjectManager.getObjectName(i);
+            g2.drawString(objectName, panelX + slotMargin + slotSize + textMargin,
+                    currentSlotY + slotSize / 2 + g2.getFontMetrics().getAscent() / 2);
         }
 
         // Draw cross button on top of everything
