@@ -168,23 +168,54 @@ public class Renderer {
         int titleWidth = g2.getFontMetrics().stringWidth(title);
         g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
 
-        // Draw current hall number
+        // Draw current hall number and navigation hints
         g2.setFont(new Font("Monospaced", Font.BOLD, 24));
         String hallText = "Hall " + (gameState.getCurrentHall() + 1) + " of " + GameState.TOTAL_HALLS;
         int hallWidth = g2.getFontMetrics().stringWidth(hallText);
         g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 60);
 
-        // Draw instructions
+        // Draw object count and requirement
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+        int requiredObjects;
+        switch (gameState.getCurrentHall()) {
+            case 0:
+                requiredObjects = 6;
+                break;
+            case 1:
+                requiredObjects = 9;
+                break;
+            case 2:
+                requiredObjects = 13;
+                break;
+            case 3:
+                requiredObjects = 17;
+                break;
+            default:
+                requiredObjects = 0;
+        }
+        int currentObjects = gameState.getPlacedObjects().size();
+        String objectCountText = currentObjects + "/" + requiredObjects + " objects";
+        int countWidth = g2.getFontMetrics().stringWidth(objectCountText);
+        g2.setColor(currentObjects >= requiredObjects ? new Color(0, 255, 0) : new Color(255, 100, 100));
+        g2.drawString(objectCountText, panelX + (panelWidth - countWidth) / 2, panelY + 80);
+
+        // Draw navigation instructions
+        g2.setColor(TEXT_COLOR);
+        String navInstructions = "← → to switch halls";
+        int navWidth = g2.getFontMetrics().stringWidth(navInstructions);
+        g2.drawString(navInstructions, panelX + (panelWidth - navWidth) / 2, panelY + 100);
+
+        // Draw action instructions
         String instructions = "Press ENTER to " +
-                (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1 ? "build next hall" : "start game");
+                (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1 ? "save hall" : "start game");
         int instructionsWidth = g2.getFontMetrics().stringWidth(instructions);
-        g2.drawString(instructions, panelX + (panelWidth - instructionsWidth) / 2, panelY + 90);
+        g2.drawString(instructions, panelX + (panelWidth - instructionsWidth) / 2, panelY + 120);
 
         // Draw object slots
         int slotMargin = 10;
-        int slotSize = (panelWidth - 2 * slotMargin) / 2; // Half the previous size
-        int slotY = panelY + 100;
-        int slotSpacing = slotSize + 15; // Reduced spacing
+        int slotSize = (panelWidth - 2 * slotMargin) / 2;
+        int slotY = panelY + 140;
+        int slotSpacing = slotSize + 15;
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
         int textMargin = 10;

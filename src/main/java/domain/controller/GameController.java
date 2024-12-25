@@ -89,15 +89,58 @@ public class GameController {
             return;
         }
 
-        // When enter is pressed, store current hall and either move to next hall or
-        // start play mode
+        // Handle hall navigation with left/right arrow keys
+        if (inputState.leftPressed) {
+            if (gameState.getCurrentHall() > 0) {
+                gameState.setCurrentHall(gameState.getCurrentHall() - 1);
+                inputState.reset();
+            }
+        } else if (inputState.rightPressed) {
+            if (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1) {
+                gameState.setCurrentHall(gameState.getCurrentHall() + 1);
+                inputState.reset();
+            }
+        }
+
+        // When enter is pressed, check minimum objects requirement and handle hall
+        // transition
         if (inputState.enterPressed) {
+            int currentHall = gameState.getCurrentHall();
+            int objectCount = gameState.getPlacedObjects().size();
+            int requiredObjects;
+
+            // Define minimum object requirements for each hall
+            switch (currentHall) {
+                case 0:
+                    requiredObjects = 6;
+                    break;
+                case 1:
+                    requiredObjects = 9;
+                    break;
+                case 2:
+                    requiredObjects = 13;
+                    break;
+                case 3:
+                    requiredObjects = 17;
+                    break;
+                default:
+                    requiredObjects = 0;
+            }
+
+            // Check if the current hall meets the minimum object requirement
+            if (objectCount < requiredObjects) {
+                System.out.println("Hall " + (currentHall + 1) + " requires at least " + requiredObjects + " objects!");
+                inputState.reset();
+                return;
+            }
+
             // Assign a random rune to the current hall
             gameState.assignRandomRune();
 
-            // Try to move to next hall
-            if (gameState.moveToNextHall()) {
-                // Continue in build mode with the next hall
+            // Move to next hall or start play mode
+            if (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1) {
+                // Move to next hall
+                gameState.setCurrentHall(gameState.getCurrentHall() + 1);
                 inputState.reset();
             } else {
                 // All halls are complete, start play mode with the first hall

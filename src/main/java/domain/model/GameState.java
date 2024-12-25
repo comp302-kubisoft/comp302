@@ -226,6 +226,17 @@ public class GameState {
   }
 
   /**
+   * Removes a placed object at the specified grid position in the current hall.
+   * 
+   * @param gridX The grid X coordinate of the object to remove
+   * @param gridY The grid Y coordinate of the object to remove
+   */
+  public void removePlacedObject(int gridX, int gridY) {
+    List<PlacedObject> currentHallObjects = hallObjects.get(currentHall);
+    currentHallObjects.removeIf(obj -> obj.gridX == gridX && obj.gridY == gridY);
+  }
+
+  /**
    * Gets the list of placed objects in the current hall.
    */
   public List<PlacedObject> getPlacedObjects() {

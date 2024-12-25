@@ -57,6 +57,11 @@ public class MouseHandler extends MouseAdapter {
      */
     @Override
     public void mouseClicked(MouseEvent e) {
+        // Only handle left clicks
+        if (e.getButton() != MouseEvent.BUTTON1) {
+            return;
+        }
+
         int x = e.getX();
         int y = e.getY();
 
@@ -159,6 +164,37 @@ public class MouseHandler extends MouseAdapter {
                     gridY * tileSize,
                     gridX,
                     gridY);
+        }
+    }
+
+    /**
+     * Handles mouse press events, specifically for right-click object removal in
+     * build mode.
+     * 
+     * @param e The mouse press event
+     */
+    @Override
+    public void mousePressed(MouseEvent e) {
+        // Only handle right clicks in build mode
+        if (gamePanel.getMode() != GameMode.BUILD || e.getButton() != MouseEvent.BUTTON3) {
+            return;
+        }
+
+        int x = e.getX();
+        int y = e.getY();
+
+        // Ignore right clicks in the build panel area
+        if (x >= screenWidth - panelWidth - panelMargin) {
+            return;
+        }
+
+        // Convert click coordinates to grid position
+        int gridX = x / tileSize;
+        int gridY = y / tileSize;
+
+        // Remove object if one exists at the clicked position
+        if (gameState.isWithinGameArea(gridX, gridY) && gameState.isTileOccupied(gridX, gridY)) {
+            gameState.removePlacedObject(gridX, gridY);
         }
     }
 }
