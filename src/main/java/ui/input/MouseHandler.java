@@ -85,7 +85,12 @@ public class MouseHandler extends MouseAdapter {
             if (gameState.isTileOccupied(gridX, gridY)) {
                 // Check if hero is adjacent to the object
                 if (gameState.isHeroAdjacent(gridX, gridY, tileSize)) {
-                    gameState.checkForRune(gridX, gridY);
+                    boolean foundRune = gameState.checkForRune(gridX, gridY);
+                    // Show victory screen only if we've found all runes
+                    if (foundRune && gameState.getRunesFound() == GameState.TOTAL_HALLS) {
+                        System.out.println("Congratulations! You have found all the mystical runes!");
+                        gamePanel.setMode(GameMode.VICTORY);
+                    }
                 }
             }
             return;

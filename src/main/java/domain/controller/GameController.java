@@ -66,7 +66,9 @@ public class GameController {
                 gamePanel.setMode(newMode);
                 inputState.reset();
             }
-        } else if (gamePanel.getMode() == GameMode.HELP || gamePanel.getMode() == GameMode.GAME_OVER) {
+        } else if (gamePanel.getMode() == GameMode.HELP ||
+                gamePanel.getMode() == GameMode.GAME_OVER ||
+                gamePanel.getMode() == GameMode.VICTORY) {
             if (inputState.escapePressed) {
                 gamePanel.setMode(GameMode.MENU);
                 inputState.reset();
@@ -87,15 +89,25 @@ public class GameController {
             return;
         }
 
-        // Transition to play mode when ready
+        // When enter is pressed, store current hall and either move to next hall or
+        // start play mode
         if (inputState.enterPressed) {
-            // Assign a random rune before transitioning
+            // Assign a random rune to the current hall
             gameState.assignRandomRune();
-            // Initialize monster spawn timer when entering play mode
-            lastMonsterSpawnTime = System.currentTimeMillis();
-            pauseDuration = 0;
-            gamePanel.setMode(GameMode.PLAY);
-            inputState.reset();
+
+            // Try to move to next hall
+            if (gameState.moveToNextHall()) {
+                // Continue in build mode with the next hall
+                inputState.reset();
+            } else {
+                // All halls are complete, start play mode with the first hall
+                gameState.setCurrentHall(0);
+                // Initialize monster spawn timer when entering play mode
+                lastMonsterSpawnTime = System.currentTimeMillis();
+                pauseDuration = 0;
+                gamePanel.setMode(GameMode.PLAY);
+                inputState.reset();
+            }
         }
     }
 
@@ -209,5 +221,31 @@ public class GameController {
      */
     public Menu getMenu() {
         return menu;
+    }
+
+    /**
+     * Main update method that handles all game state updates based on the current
+     * mode.
+     * 
+     * @param currentMode The current game mode
+     * @param isPaused    Whether the game is currently paused
+     */
+    public void update(GameMode currentMode, boolean isPaused) {
+        switch (currentMode) {
+            case MENU:
+            case HELP:
+            case GAME_OVER:
+            case VICTORY:
+                updateMenuOrHelpMode();
+                break;
+            case PLAY:
+                if (!isPaused) {
+                    updatePlayMode();
+                }
+                break;
+            case BUILD:
+                updateBuildMode();
+                break;
+        }
     }
 }

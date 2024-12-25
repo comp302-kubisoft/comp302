@@ -177,21 +177,7 @@ public class GamePanel extends JPanel implements Runnable {
      * Delegates to appropriate controller methods for each mode.
      */
     public void update() {
-        switch (currentMode) {
-            case MENU:
-            case HELP:
-            case GAME_OVER:
-                gameController.updateMenuOrHelpMode();
-                break;
-            case PLAY:
-                if (!renderer.isPaused()) {
-                    gameController.updatePlayMode();
-                }
-                break;
-            case BUILD:
-                gameController.updateBuildMode();
-                break;
-        }
+        gameController.update(currentMode, renderer.isPaused());
     }
 
     /**
@@ -215,8 +201,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     /**
      * Resets the game state to its initial condition.
-     * Reinitializes all components while preserving the menu state.
-     * Used when returning to menu or starting a new game.
+     * Called when returning to menu or starting a new game.
      */
     public void resetGameState() {
         // Re-initialize the game state
@@ -232,7 +217,9 @@ public class GamePanel extends JPanel implements Runnable {
         // Re-initialize the mouse handler with the new renderer
         this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
         // Remove old mouse listener and add new one
-        this.removeMouseListener(this.getMouseListeners()[0]);
+        for (java.awt.event.MouseListener listener : this.getMouseListeners()) {
+            this.removeMouseListener(listener);
+        }
         this.addMouseListener(mouseH);
     }
 }

@@ -70,6 +70,9 @@ public class Renderer {
             case GAME_OVER:
                 drawGameOverScreen(g2);
                 break;
+            case VICTORY:
+                drawVictoryScreen(g2);
+                break;
             case PLAY:
                 // Draw main game area
                 gameState.getTileManager().draw(g2);
@@ -165,10 +168,22 @@ public class Renderer {
         int titleWidth = g2.getFontMetrics().stringWidth(title);
         g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
 
+        // Draw current hall number
+        g2.setFont(new Font("Monospaced", Font.BOLD, 24));
+        String hallText = "Hall " + (gameState.getCurrentHall() + 1) + " of " + GameState.TOTAL_HALLS;
+        int hallWidth = g2.getFontMetrics().stringWidth(hallText);
+        g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 60);
+
+        // Draw instructions
+        String instructions = "Press ENTER to " +
+                (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1 ? "build next hall" : "start game");
+        int instructionsWidth = g2.getFontMetrics().stringWidth(instructions);
+        g2.drawString(instructions, panelX + (panelWidth - instructionsWidth) / 2, panelY + 90);
+
         // Draw object slots
         int slotMargin = 10;
         int slotSize = (panelWidth - 2 * slotMargin) / 2; // Half the previous size
-        int slotY = panelY + 50;
+        int slotY = panelY + 100;
         int slotSpacing = slotSize + 15; // Reduced spacing
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
@@ -408,10 +423,16 @@ public class Renderer {
         int titleWidth = g2.getFontMetrics().stringWidth(title);
         g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
 
-        // Draw hearts
+        // Draw current hall number
+        g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+        String hallText = "Hall " + (gameState.getCurrentHall() + 1) + " of " + GameState.TOTAL_HALLS;
+        int hallWidth = g2.getFontMetrics().stringWidth(hallText);
+        g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 55);
+
+        // Draw hearts (moved down to accommodate hall number)
         if (heartImage != null) {
             int heartSize = 30;
-            int heartY = panelY + 50;
+            int heartY = panelY + 75; // Increased Y position
             int heartSpacing = 5;
             int totalHeartsWidth = (heartSize * gameState.getHero().getMaxHealth()) +
                     (heartSpacing * (gameState.getHero().getMaxHealth() - 1));
@@ -452,5 +473,39 @@ public class Renderer {
         String hintText = "Press ESC to return to menu";
         textWidth = g2.getFontMetrics().stringWidth(hintText);
         g2.drawString(hintText, screenWidth / 2 - textWidth / 2, screenHeight / 2 + 60);
+    }
+
+    private void drawVictoryScreen(Graphics2D g2) {
+        // Draw dark overlay with golden tint
+        g2.setColor(new Color(0, 0, 0, 200));
+        g2.fillRect(0, 0, screenWidth, screenHeight);
+
+        // Draw "VICTORY!" text
+        g2.setColor(new Color(255, 215, 0)); // Gold color
+        g2.setFont(new Font("Monospaced", Font.BOLD, 64));
+        String victoryText = "VICTORY!";
+        int textWidth = g2.getFontMetrics().stringWidth(victoryText);
+        g2.drawString(victoryText, screenWidth / 2 - textWidth / 2, screenHeight / 2);
+
+        // Draw congratulatory message
+        g2.setColor(TEXT_COLOR);
+        g2.setFont(new Font("Monospaced", Font.BOLD, 24));
+        String congratsText = "You have found all the mystical runes!";
+        textWidth = g2.getFontMetrics().stringWidth(congratsText);
+        g2.drawString(congratsText, screenWidth / 2 - textWidth / 2, screenHeight / 2 + 60);
+
+        // Draw hint text
+        g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+        String hintText = "Press ESC to return to menu";
+        textWidth = g2.getFontMetrics().stringWidth(hintText);
+        g2.drawString(hintText, screenWidth / 2 - textWidth / 2, screenHeight / 2 + 120);
+    }
+
+    /**
+     * Sets the game state reference.
+     * Used when resetting the game state.
+     */
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
     }
 }

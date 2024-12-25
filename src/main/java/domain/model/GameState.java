@@ -18,10 +18,16 @@ public class GameState {
   private Hero hero;
   /** Manages the game's tile-based map */
   private TileManager tileManager;
-  /** List of all objects placed in the game world */
-  private List<PlacedObject> placedObjects;
+  /** List of all objects placed in each hall */
+  private List<List<PlacedObject>> hallObjects;
+  /** Current hall being built (0-3) */
+  private int currentHall;
+  /** Total number of halls */
+  public static final int TOTAL_HALLS = 4;
   /** List of all monsters in the game */
   private List<Monster> monsters;
+  /** Number of runes found so far */
+  private int runesFound = 0;
 
   /** Starting coordinate of the game area (inclusive) */
   private static final int GAME_AREA_START = 2;
@@ -73,7 +79,11 @@ public class GameState {
    */
   public GameState(int tileSize, int maxScreenCol, int maxScreenRow) {
     this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
-    this.placedObjects = new ArrayList<>();
+    this.hallObjects = new ArrayList<>();
+    for (int i = 0; i < TOTAL_HALLS; i++) {
+      this.hallObjects.add(new ArrayList<>());
+    }
+    this.currentHall = 0;
     this.monsters = new ArrayList<>();
     this.hero = new Hero(this);
   }
@@ -192,14 +202,11 @@ public class GameState {
   }
 
   /**
-   * Checks if a tile at the given grid position is occupied by any placed object.
-   * 
-   * @param gridX X coordinate to check
-   * @param gridY Y coordinate to check
-   * @return true if the tile is occupied, false if it's empty
+   * Checks if a tile at the given grid position is occupied by any placed object
+   * in the current hall.
    */
   public boolean isTileOccupied(int gridX, int gridY) {
-    for (PlacedObject obj : placedObjects) {
+    for (PlacedObject obj : hallObjects.get(currentHall)) {
       if (obj.gridX == gridX && obj.gridY == gridY) {
         return true;
       }
@@ -208,29 +215,21 @@ public class GameState {
   }
 
   /**
-   * Attempts to add a new object to the game world.
+   * Attempts to add a new object to the current hall.
    * The object will only be placed if the position is within the game area
    * and the target tile is not already occupied.
-   * 
-   * @param type  Type of object to place
-   * @param x     Pixel X coordinate
-   * @param y     Pixel Y coordinate
-   * @param gridX Grid X coordinate
-   * @param gridY Grid Y coordinate
    */
   public void addPlacedObject(int type, int x, int y, int gridX, int gridY) {
     if (isWithinGameArea(gridX, gridY) && !isTileOccupied(gridX, gridY)) {
-      placedObjects.add(new PlacedObject(type, x, y, gridX, gridY));
+      hallObjects.get(currentHall).add(new PlacedObject(type, x, y, gridX, gridY));
     }
   }
 
   /**
-   * Gets the list of all objects placed in the game world.
-   * 
-   * @return List of PlacedObject instances
+   * Gets the list of placed objects in the current hall.
    */
   public List<PlacedObject> getPlacedObjects() {
-    return placedObjects;
+    return hallObjects.get(currentHall);
   }
 
   /**
@@ -270,22 +269,23 @@ public class GameState {
   }
 
   /**
-   * Assigns a rune to a random placed object.
+   * Assigns a rune to a random placed object in the current hall.
    * Should be called when transitioning from build to play mode.
    */
   public void assignRandomRune() {
-    if (placedObjects.isEmpty()) {
+    List<PlacedObject> currentHallObjects = hallObjects.get(currentHall);
+    if (currentHallObjects.isEmpty()) {
       return;
     }
 
     // Clear any existing runes
-    for (PlacedObject obj : placedObjects) {
+    for (PlacedObject obj : currentHallObjects) {
       obj.hasRune = false;
     }
 
     // Select a random object to have the rune
-    int randomIndex = new java.util.Random().nextInt(placedObjects.size());
-    PlacedObject selectedObject = placedObjects.get(randomIndex);
+    int randomIndex = new java.util.Random().nextInt(currentHallObjects.size());
+    PlacedObject selectedObject = currentHallObjects.get(randomIndex);
     selectedObject.hasRune = true;
   }
 
@@ -299,9 +299,9 @@ public class GameState {
    * @return true if hero is adjacent, false otherwise
    */
   public boolean isHeroAdjacent(int gridX, int gridY, int tileSize) {
-    // Get hero's grid position
+    // Get hero's grid position using the same tileSize for both coordinates
     int heroGridX = hero.getX() / tileSize;
-    int heroGridY = hero.getY() / tileManager.getTileSize();
+    int heroGridY = hero.getY() / tileSize;
 
     // Check if hero is in any adjacent tile
     return (Math.abs(heroGridX - gridX) == 1 && heroGridY == gridY) || // Left or right
@@ -311,16 +311,31 @@ public class GameState {
   /**
    * Checks if an object at the given position has a rune.
    * Returns true and prints a message if a rune is found.
+   * If a rune is found, transitions to the next hall or ends the game.
    * 
    * @param gridX X coordinate to check
    * @param gridY Y coordinate to check
    * @return true if a rune was found, false otherwise
    */
   public boolean checkForRune(int gridX, int gridY) {
-    for (PlacedObject obj : placedObjects) {
+    for (PlacedObject obj : hallObjects.get(currentHall)) {
       if (obj.gridX == gridX && obj.gridY == gridY) {
         if (obj.hasRune) {
           System.out.println("You found a mystical rune!");
+          runesFound++;
+
+          // Move to next hall if not in the last hall
+          if (currentHall < TOTAL_HALLS - 1) {
+            currentHall++;
+            System.out.println("The rune's power transports you to hall " + (currentHall + 1) + "!");
+
+            // Reset hero's spawn position for the new hall
+            hero.resetSpawnPosition();
+
+            // Clear any existing monsters when changing halls
+            monsters.clear();
+          }
+
           return true;
         }
         return false;
@@ -334,5 +349,55 @@ public class GameState {
    */
   public List<Monster> getMonsters() {
     return monsters;
+  }
+
+  /**
+   * Gets the current hall number (0-3).
+   */
+  public int getCurrentHall() {
+    return currentHall;
+  }
+
+  /**
+   * Moves to the next hall. Returns true if there are more halls, false if we've
+   * reached the end.
+   */
+  public boolean moveToNextHall() {
+    if (currentHall < TOTAL_HALLS - 1) {
+      currentHall++;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Gets the list of placed objects in a specific hall.
+   */
+  public List<PlacedObject> getPlacedObjectsInHall(int hall) {
+    return hallObjects.get(hall);
+  }
+
+  /**
+   * Sets the current hall number (0-3).
+   */
+  public void setCurrentHall(int hall) {
+    if (hall >= 0 && hall < TOTAL_HALLS) {
+      this.currentHall = hall;
+    }
+  }
+
+  /**
+   * Gets the number of runes found so far.
+   */
+  public int getRunesFound() {
+    return runesFound;
+  }
+
+  /**
+   * Resets the number of runes found to zero.
+   * Called when resetting the game state.
+   */
+  public void resetRunesFound() {
+    runesFound = 0;
   }
 }

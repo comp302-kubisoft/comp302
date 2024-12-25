@@ -261,4 +261,12 @@ public class Hero extends Entity {
       health--;
     }
   }
+
+  /**
+   * Resets the spawn position flag to allow setting a new spawn position.
+   * Used when transitioning between halls.
+   */
+  public void resetSpawnPosition() {
+    this.spawnPositionSet = false;
+  }
 }

@@ -5,5 +5,6 @@ public enum GameMode {
     PLAY,
     HELP,
     BUILD,
-    GAME_OVER
+    GAME_OVER,
+    VICTORY
 }
