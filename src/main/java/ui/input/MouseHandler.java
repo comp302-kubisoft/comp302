@@ -119,11 +119,13 @@ public class MouseHandler extends MouseAdapter {
         int panelX = screenWidth - panelWidth - panelMargin;
         int slotMargin = 10;
         int slotSize = (panelWidth - 2 * slotMargin) / 2;
-        int slotY = panelMargin + 50;
+        int slotY = panelMargin + 100;
         int slotSpacing = slotSize + 15;
+        int textMargin = 10;
 
         // Check which slot was clicked
-        if (x >= panelX + slotMargin && x <= panelX + slotMargin + slotSize) {
+        // Check both the image area and the text area for each object
+        if (x >= panelX + slotMargin && x <= panelX + panelWidth - slotMargin) {
             for (int i = 0; i < 5; i++) {
                 int currentSlotY = slotY + i * slotSpacing;
                 if (y >= currentSlotY && y <= currentSlotY + slotSize) {
