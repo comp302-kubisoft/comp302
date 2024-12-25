@@ -161,18 +161,18 @@ public class Renderer {
         g2.setStroke(new BasicStroke(4));
         g2.drawRect(panelX, panelY, panelWidth, panelHeight);
 
-        // Draw title
-        g2.setFont(new Font("Monospaced", Font.BOLD, 20));
+        // Draw title with larger font
+        g2.setFont(new Font("Monospaced", Font.BOLD, 24));
         g2.setColor(TEXT_COLOR);
         String title = "Build Mode";
         int titleWidth = g2.getFontMetrics().stringWidth(title);
-        g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
+        g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 40);
 
         // Draw current hall number and navigation hints
         g2.setFont(new Font("Monospaced", Font.BOLD, 24));
         String hallText = "Hall " + (gameState.getCurrentHall() + 1) + " of " + GameState.TOTAL_HALLS;
         int hallWidth = g2.getFontMetrics().stringWidth(hallText);
-        g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 60);
+        g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 80);
 
         // Draw object count and requirement
         g2.setFont(new Font("Monospaced", Font.BOLD, 14));
@@ -211,13 +211,13 @@ public class Renderer {
         int instructionsWidth = g2.getFontMetrics().stringWidth(instructions);
         g2.drawString(instructions, panelX + (panelWidth - instructionsWidth) / 2, panelY + 120);
 
-        // Draw object slots
+        // Draw object slots starting lower to accommodate the header text
         int slotMargin = 10;
         int slotSize = (panelWidth - 2 * slotMargin) / 2;
-        int slotY = panelY + 140;
+        int slotY = panelY + 200; // Increased starting Y position
         int slotSpacing = slotSize + 15;
 
-        g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        g2.setFont(new Font("Monospaced", Font.BOLD, 20)); // Increased font size for object names
         int textMargin = 10;
 
         for (int i = 0; i < buildObjectManager.getObjectCount(); i++) {
