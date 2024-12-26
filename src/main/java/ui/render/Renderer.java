@@ -33,6 +33,46 @@ public class Renderer {
     private final Color WOOD_LIGHT = new Color(116, 82, 53);
     private final Color TEXT_COLOR = new Color(231, 231, 231);
 
+    // Hall theme colors
+    private final Color EARTH_DARK = new Color(101, 67, 33); // Dark brown
+    private final Color EARTH_LIGHT = new Color(140, 100, 60); // Light brown
+    private final Color AIR_DARK = new Color(176, 196, 222); // Light steel blue
+    private final Color AIR_LIGHT = new Color(230, 230, 250); // Lavender
+    private final Color WATER_DARK = new Color(0, 105, 148); // Deep blue
+    private final Color WATER_LIGHT = new Color(64, 164, 223); // Light blue
+    private final Color FIRE_DARK = new Color(139, 0, 0); // Dark red
+    private final Color FIRE_LIGHT = new Color(255, 69, 0); // Red-orange
+
+    private Color getHallDarkColor(int hallNumber) {
+        switch (hallNumber) {
+            case 0:
+                return EARTH_DARK;
+            case 1:
+                return AIR_DARK;
+            case 2:
+                return WATER_DARK;
+            case 3:
+                return FIRE_DARK;
+            default:
+                return WOOD_DARK;
+        }
+    }
+
+    private Color getHallLightColor(int hallNumber) {
+        switch (hallNumber) {
+            case 0:
+                return EARTH_LIGHT;
+            case 1:
+                return AIR_LIGHT;
+            case 2:
+                return WATER_LIGHT;
+            case 3:
+                return FIRE_LIGHT;
+            default:
+                return WOOD_LIGHT;
+        }
+    }
+
     private int selectedObjectIndex = -1; // -1 means no selection
 
     public Renderer(GameState gameState, int tileSize, int screenWidth, int screenHeight, GamePanel gamePanel) {
@@ -149,15 +189,19 @@ public class Renderer {
         int panelHeight = screenHeight - 2 * panelMargin;
         int panelY = panelMargin;
 
+        // Get hall-specific colors
+        Color darkColor = getHallDarkColor(gameState.getCurrentHall());
+        Color lightColor = getHallLightColor(gameState.getCurrentHall());
+
         // Draw panel background with gradient
         GradientPaint woodGradient = new GradientPaint(
-                panelX, panelY, WOOD_DARK,
-                panelX + panelWidth, panelY + panelHeight, WOOD_LIGHT);
+                panelX, panelY, darkColor,
+                panelX + panelWidth, panelY + panelHeight, lightColor);
         g2.setPaint(woodGradient);
         g2.fillRect(panelX, panelY, panelWidth, panelHeight);
 
         // Draw panel border
-        g2.setColor(WOOD_DARK);
+        g2.setColor(darkColor);
         g2.setStroke(new BasicStroke(4));
         g2.drawRect(panelX, panelY, panelWidth, panelHeight);
 
@@ -168,9 +212,9 @@ public class Renderer {
         int titleWidth = g2.getFontMetrics().stringWidth(title);
         g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
 
-        // Draw current hall number and navigation hints
+        // Draw current hall name
         g2.setFont(new Font("Monospaced", Font.BOLD, 24));
-        String hallText = "Hall " + (gameState.getCurrentHall() + 1) + " of " + GameState.TOTAL_HALLS;
+        String hallText = getHallName(gameState.getCurrentHall());
         int hallWidth = g2.getFontMetrics().stringWidth(hallText);
         g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 60);
 
@@ -211,10 +255,15 @@ public class Renderer {
         int instructionsWidth = g2.getFontMetrics().stringWidth(instructions);
         g2.drawString(instructions, panelX + (panelWidth - instructionsWidth) / 2, panelY + 120);
 
-        // Draw object slots
+        // Draw right-click instruction
+        String deleteInstruction = "Right click to delete";
+        int deleteWidth = g2.getFontMetrics().stringWidth(deleteInstruction);
+        g2.drawString(deleteInstruction, panelX + (panelWidth - deleteWidth) / 2, panelY + 140);
+
+        // Draw object slots (adjusted Y position to accommodate new instruction)
         int slotMargin = 10;
         int slotSize = (panelWidth - 2 * slotMargin) / 2;
-        int slotY = panelY + 140;
+        int slotY = panelY + 160; // Increased from 140 to make room for new instruction
         int slotSpacing = slotSize + 15;
 
         g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
@@ -230,7 +279,7 @@ public class Renderer {
             }
 
             // Draw slot background
-            g2.setColor(WOOD_DARK);
+            g2.setColor(darkColor);
             g2.fillRect(panelX + slotMargin, currentSlotY, slotSize, slotSize);
 
             // Draw object image
@@ -435,15 +484,19 @@ public class Renderer {
         int panelHeight = screenHeight - 2 * panelMargin;
         int panelY = panelMargin;
 
+        // Get hall-specific colors
+        Color darkColor = getHallDarkColor(gameState.getCurrentHall());
+        Color lightColor = getHallLightColor(gameState.getCurrentHall());
+
         // Draw panel background with gradient
         GradientPaint woodGradient = new GradientPaint(
-                panelX, panelY, WOOD_DARK,
-                panelX + panelWidth, panelY + panelHeight, WOOD_LIGHT);
+                panelX, panelY, darkColor,
+                panelX + panelWidth, panelY + panelHeight, lightColor);
         g2.setPaint(woodGradient);
         g2.fillRect(panelX, panelY, panelWidth, panelHeight);
 
         // Draw panel border
-        g2.setColor(WOOD_DARK);
+        g2.setColor(darkColor);
         g2.setStroke(new BasicStroke(4));
         g2.drawRect(panelX, panelY, panelWidth, panelHeight);
 
@@ -454,9 +507,9 @@ public class Renderer {
         int titleWidth = g2.getFontMetrics().stringWidth(title);
         g2.drawString(title, panelX + (panelWidth - titleWidth) / 2, panelY + 30);
 
-        // Draw current hall number
+        // Draw current hall name
         g2.setFont(new Font("Monospaced", Font.BOLD, 16));
-        String hallText = "Hall " + (gameState.getCurrentHall() + 1) + " of " + GameState.TOTAL_HALLS;
+        String hallText = getHallName(gameState.getCurrentHall());
         int hallWidth = g2.getFontMetrics().stringWidth(hallText);
         g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 55);
 
@@ -538,5 +591,20 @@ public class Renderer {
      */
     public void setGameState(GameState gameState) {
         this.gameState = gameState;
+    }
+
+    private String getHallName(int hallNumber) {
+        switch (hallNumber) {
+            case 0:
+                return "Hall of Earth";
+            case 1:
+                return "Hall of Air";
+            case 2:
+                return "Hall of Water";
+            case 3:
+                return "Hall of Fire";
+            default:
+                return "Unknown Hall";
+        }
     }
 }

@@ -124,7 +124,7 @@ public class MouseHandler extends MouseAdapter {
         int panelX = screenWidth - panelWidth - panelMargin;
         int slotMargin = 10;
         int slotSize = (panelWidth - 2 * slotMargin) / 2;
-        int slotY = panelMargin + 100;
+        int slotY = panelMargin + 160;
         int slotSpacing = slotSize + 15;
 
         // Check which slot was clicked
@@ -132,7 +132,8 @@ public class MouseHandler extends MouseAdapter {
         if (x >= panelX + slotMargin && x <= panelX + panelWidth - slotMargin) {
             for (int i = 0; i < 5; i++) {
                 int currentSlotY = slotY + i * slotSpacing;
-                if (y >= currentSlotY && y <= currentSlotY + slotSize) {
+                // Add a small buffer zone between slots to prevent overlap
+                if (y >= currentSlotY - 5 && y < currentSlotY + slotSize + 5) {
                     renderer.setSelectedObject(i);
                     return;
                 }
