@@ -30,6 +30,15 @@ public class Hero extends Entity {
   private static final int MAX_HEALTH = 4;
   /** Starting health of the hero */
   private static final int STARTING_HEALTH = 3;
+  /** Add these fields for animation */
+  private int spriteCounter = 0;
+  private int spriteNum = 1;
+  private static final int SPRITE_CHANGE_RATE = 12; // Adjust this to control animation speed
+  /** Add collision box constants */
+  private static final double COLLISION_BOX_WIDTH = 0.5; // 8 pixels (50% of 16)
+  private static final double COLLISION_BOX_HEIGHT = 0.375; // 6 pixels (37.5% of 16)
+  private static final double COLLISION_BOX_X_OFFSET = 0.25; // Center horizontally (25% from left)
+  private static final double COLLISION_BOX_Y_OFFSET = 0.625; // Place at bottom (62.5% from top)
 
   /**
    * Creates a new hero instance with a reference to the game state.
@@ -93,6 +102,7 @@ public class Hero extends Entity {
   /**
    * Attempts to move the hero by the specified amount.
    * Checks for collisions before allowing movement.
+   * Updates animation and direction.
    * 
    * @param dx          Change in x position
    * @param dy          Change in y position
@@ -100,6 +110,17 @@ public class Hero extends Entity {
    * @param tileSize    Size of each tile in pixels
    */
   public void moveIfPossible(int dx, int dy, TileManager tileManager, int tileSize) {
+    // Update animation only if moving
+    if (dx != 0 || dy != 0) {
+      updateAnimation();
+    }
+
+    // Set direction based on movement
+    if (dx < 0) direction = "left";
+    if (dx > 0) direction = "right";
+    if (dy < 0) direction = "up";
+    if (dy > 0) direction = "down";
+
     if (dx != 0) {
       int newX = x + dx;
       if (!checkCollision(newX, y, tileManager, tileSize)) {
@@ -126,18 +147,30 @@ public class Hero extends Entity {
    * @return true if there would be a collision, false if position is valid
    */
   private boolean checkCollision(int newX, int newY, TileManager tileManager, int tileSize) {
-    // Check wall collisions
-    if (tileManager.checkTileCollision(newX, newY, tileSize, tileSize)) {
+    // Calculate collision box dimensions
+    int boxWidth = (int)(tileSize * COLLISION_BOX_WIDTH);    // 8 pixels
+    int boxHeight = (int)(tileSize * COLLISION_BOX_HEIGHT);  // 6 pixels
+    
+    // Calculate offsets to position the box at the bottom-center of the sprite
+    int xOffset = (int)(tileSize * COLLISION_BOX_X_OFFSET);  // 4 pixels from left
+    int yOffset = (int)(tileSize * COLLISION_BOX_Y_OFFSET);  // 10 pixels from top
+
+    // Calculate collision box position
+    int collisionX = newX + xOffset;
+    int collisionY = newY + yOffset;
+
+    // Check wall collisions with smaller box
+    if (tileManager.checkTileCollision(collisionX, collisionY, boxWidth, boxHeight)) {
       return true;
     }
 
-    // Get grid positions for all corners of the hero
-    int leftTile = newX / tileSize;
-    int rightTile = (newX + tileSize - 1) / tileSize;
-    int topTile = newY / tileSize;
-    int bottomTile = (newY + tileSize - 1) / tileSize;
+    // Convert collision box coordinates to grid positions
+    int leftTile = collisionX / tileSize;
+    int rightTile = (collisionX + boxWidth - 1) / tileSize;
+    int topTile = collisionY / tileSize;
+    int bottomTile = (collisionY + boxHeight - 1) / tileSize;
 
-    // Check object collisions for all tiles the hero might overlap
+    // Check object collisions for all tiles the collision box might overlap
     for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
       if ((obj.gridX >= leftTile && obj.gridX <= rightTile) &&
           (obj.gridY >= topTile && obj.gridY <= bottomTile)) {
@@ -145,13 +178,11 @@ public class Hero extends Entity {
       }
     }
 
-    // Check monster collisions
+    // Check monster collisions with smaller collision box
     for (Monster monster : gameState.getMonsters()) {
-      // Convert monster position to grid coordinates
       int monsterGridX = monster.getX() / tileSize;
       int monsterGridY = monster.getY() / tileSize;
 
-      // Check if monster overlaps with hero's proposed position
       if ((monsterGridX >= leftTile && monsterGridX <= rightTile) &&
           (monsterGridY >= topTile && monsterGridY <= bottomTile)) {
         return true;
@@ -167,6 +198,14 @@ public class Hero extends Entity {
   private void loadImage() {
     try {
       image = ImageIO.read(getClass().getResourceAsStream("/hero/player.png"));
+      left1 = ImageIO.read(getClass().getResourceAsStream("/hero/player_left1.png"));
+      left2 = ImageIO.read(getClass().getResourceAsStream("/hero/player_left2.png"));
+      right1 = ImageIO.read(getClass().getResourceAsStream("/hero/player_right1.png"));
+      right2 = ImageIO.read(getClass().getResourceAsStream("/hero/player_right2.png"));
+      up1 = ImageIO.read(getClass().getResourceAsStream("/hero/player_up1.png"));
+      up2 = ImageIO.read(getClass().getResourceAsStream("/hero/player_up2.png"));
+      down1 = ImageIO.read(getClass().getResourceAsStream("/hero/player_down1.png"));
+      down2 = ImageIO.read(getClass().getResourceAsStream("/hero/player_down2.png"));
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -268,5 +307,50 @@ public class Hero extends Entity {
    */
   public void resetSpawnPosition() {
     this.spawnPositionSet = false;
+  }
+
+  /**
+   * Updates the hero's animation state.
+   * Should be called every game update.
+   */
+  public void updateAnimation() {
+    spriteCounter++;
+    if (spriteCounter > SPRITE_CHANGE_RATE) {
+      spriteNum = (spriteNum == 1) ? 2 : 1;
+      spriteCounter = 0;
+    }
+  }
+
+  /**
+   * Gets the current sprite image based on direction and animation state.
+   * 
+   * @return The BufferedImage to display
+   */
+  public BufferedImage getCurrentSprite() {
+    return switch (direction) {
+      case "left" -> (spriteNum == 1) ? left1 : left2;
+      case "right" -> (spriteNum == 1) ? right1 : right2;
+      case "up" -> (spriteNum == 1) ? up1 : up2;
+      case "down" -> (spriteNum == 1) ? down1 : down2;
+      default -> image; // Default sprite for other directions
+    };
+  }
+
+  /**
+   * Gets the collision box bounds for debugging or UI purposes.
+   * @return int array containing [x, y, width, height] of collision box
+   */
+  public int[] getCollisionBox(int tileSize) {
+    int boxWidth = (int)(tileSize * COLLISION_BOX_WIDTH);
+    int boxHeight = (int)(tileSize * COLLISION_BOX_HEIGHT);
+    int xOffset = (int)(tileSize * COLLISION_BOX_X_OFFSET);
+    int yOffset = (int)(tileSize * COLLISION_BOX_Y_OFFSET);
+    
+    return new int[] {
+      x + xOffset,
+      y + yOffset,
+      boxWidth,
+      boxHeight
+    };
   }
 }

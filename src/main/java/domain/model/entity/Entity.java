@@ -16,7 +16,7 @@ public class Entity {
   /** Movement speed in pixels per update */
   protected int speed;
   /** Entity's sprite image */
-  protected BufferedImage imag;
+  public BufferedImage left1, left2, right1, right2, up1, up2, down1, down2;
   /** Current facing direction ("up", "down", "left", "right") */
   protected String direction;
 

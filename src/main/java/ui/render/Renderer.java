@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
+import domain.model.entity.Hero;
 
 public class Renderer {
 
@@ -134,12 +135,10 @@ public class Renderer {
                 }
 
                 // Draw hero on top
-                g2.drawImage(gameState.getHero().getImage(),
-                        gameState.getHero().getX(),
-                        gameState.getHero().getY(),
-                        tileSize,
-                        tileSize,
-                        null);
+                Hero hero = gameState.getHero();
+                g2.drawImage(hero.getCurrentSprite(),
+                        hero.getX(), hero.getY(),
+                        tileSize, tileSize, null);
 
                 // Draw right panel for UI elements
                 drawPlayModePanel(g2);
