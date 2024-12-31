@@ -49,6 +49,8 @@ public class TileManager {
     try {
       tile[0] = TileFactory.createTile("/tiles/floor_plain.png", false);
       tile[1] = TileFactory.createTile("/tiles/Wall_front.png", true);
+      tile[2] = TileFactory.createTile("/tiles/door_closed.png", true);
+      tile[3] = TileFactory.createTile("/tiles/door_open.png", true);
 
     } catch (Exception e) {
       e.printStackTrace();

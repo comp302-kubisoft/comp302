@@ -129,7 +129,7 @@ public class GameController {
 
             // Check if the current hall meets the minimum object requirement
             if (objectCount < requiredObjects) {
-                System.out.println("Hall " + (currentHall + 1) + " requires at least " + requiredObjects + " objects!");
+
                 inputState.reset();
                 return;
             }
@@ -233,6 +233,16 @@ public class GameController {
         // Update hero state
         hero.setDirection(direction);
         hero.moveIfPossible(dx, dy, gameState.getTileManager(), gamePanel.getTileSize());
+
+        // Check if hero is on transition tile after movement
+        if (gameState.isHeroOnTransitionTile()) {
+            boolean isVictory = gameState.handleHallTransition();
+            if (isVictory) {
+
+                gamePanel.setMode(GameMode.VICTORY);
+                inputState.reset();
+            }
+        }
     }
 
     /**

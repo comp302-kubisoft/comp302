@@ -28,6 +28,11 @@ public class GameState {
   private List<Monster> monsters;
   /** Number of runes found so far */
   private int runesFound = 0;
+  /** Whether a rune has been found in the current hall */
+  private boolean runeFoundInCurrentHall = false;
+  /** Fixed position of the transition tile */
+  private static final int TRANSITION_TILE_X = 9;
+  private static final int TRANSITION_TILE_Y = 16;
 
   /** Starting coordinate of the game area (inclusive) */
   private static final int GAME_AREA_START = 2;
@@ -316,13 +321,61 @@ public class GameState {
 
     // Check if hero is in any adjacent tile
     return (Math.abs(heroGridX - gridX) == 1 && heroGridY == gridY) || // Left or right
-        (Math.abs(heroGridY - gridY) == 1 && heroGridX == gridX); // Up or down
+        (Math.abs(heroGridY - gridY) == 1 && heroGridX == gridX)
+        || (Math.abs(heroGridX - gridX) == 1 && Math.abs(heroGridY - gridY) == 1);
+  }
+
+  /**
+   * Checks if the hero is on the transition tile.
+   * Only relevant if a rune has been found in the current hall.
+   * 
+   * @return true if the hero is on the transition tile and a rune has been found
+   */
+  public boolean isHeroOnTransitionTile() {
+    if (!runeFoundInCurrentHall) {
+      return false;
+    }
+
+    int heroGridX = hero.getX() / tileManager.getTileSize();
+    int heroGridY = hero.getY() / tileManager.getTileSize();
+
+    return heroGridX == TRANSITION_TILE_X && heroGridY == TRANSITION_TILE_Y;
+  }
+
+  /**
+   * Handles the transition to the next hall or victory.
+   * Should be called when the hero is on the transition tile.
+   * 
+   * @return true if this triggered a victory condition
+   */
+  public boolean handleHallTransition() {
+    if (!runeFoundInCurrentHall || !isHeroOnTransitionTile()) {
+      return false;
+    }
+
+    if (currentHall < TOTAL_HALLS - 1) {
+      currentHall++;
+
+      // Reset and set new spawn position
+      hero.resetSpawnPosition();
+      hero.setSpawnPosition(tileManager, tileManager.getTileSize());
+
+      // Clear monsters and reset rune flag
+      monsters.clear();
+      runeFoundInCurrentHall = false;
+
+      // Reset the transition tile back to closed door
+      tileManager.mapTileNum[TRANSITION_TILE_X][TRANSITION_TILE_Y + 2] = 2;
+
+      return false;
+    } else {
+      return true; // Victory condition
+    }
   }
 
   /**
    * Checks if an object at the given position has a rune.
    * Returns true and prints a message if a rune is found.
-   * If a rune is found, transitions to the next hall or ends the game.
    * 
    * @param gridX X coordinate to check
    * @param gridY Y coordinate to check
@@ -332,20 +385,12 @@ public class GameState {
     for (PlacedObject obj : hallObjects.get(currentHall)) {
       if (obj.gridX == gridX && obj.gridY == gridY) {
         if (obj.hasRune) {
-          System.out.println("You found a mystical rune!");
+
           runesFound++;
+          runeFoundInCurrentHall = true;
 
-          // Move to next hall if not in the last hall
-          if (currentHall < TOTAL_HALLS - 1) {
-            currentHall++;
-            System.out.println("The rune's power transports you to hall " + (currentHall + 1) + "!");
-
-            // Reset hero's spawn position for the new hall
-            hero.resetSpawnPosition();
-
-            // Clear any existing monsters when changing halls
-            monsters.clear();
-          }
+          // Change the tile at row 18, column 9 to type 3 (open door)
+          tileManager.mapTileNum[9][18] = 3;
 
           return true;
         }
@@ -410,5 +455,6 @@ public class GameState {
    */
   public void resetRunesFound() {
     runesFound = 0;
+    runeFoundInCurrentHall = false;
   }
 }
