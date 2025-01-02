@@ -170,6 +170,14 @@ public class GameController {
     }
 
     /**
+     * Resets the monster spawn timer.
+     * Called when transitioning between halls.
+     */
+    public void resetMonsterSpawnTimer() {
+        lastMonsterSpawnTime = System.currentTimeMillis() - pauseDuration;
+    }
+
+    /**
      * Updates the play mode state.
      * Handles hero movement, spawn position, monster spawning, and game
      * interactions during gameplay.
@@ -238,9 +246,11 @@ public class GameController {
         if (gameState.isHeroOnTransitionTile()) {
             boolean isVictory = gameState.handleHallTransition();
             if (isVictory) {
-
                 gamePanel.setMode(GameMode.VICTORY);
                 inputState.reset();
+            } else {
+                // Reset monster spawn timer when transitioning to a new hall
+                resetMonsterSpawnTimer();
             }
         }
     }
