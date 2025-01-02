@@ -39,6 +39,10 @@ public class Hero extends Entity {
   private static final double COLLISION_BOX_HEIGHT = 0.375; // 6 pixels (37.5% of 16)
   private static final double COLLISION_BOX_X_OFFSET = 0.25; // Center horizontally (25% from left)
   private static final double COLLISION_BOX_Y_OFFSET = 0.625; // Place at bottom (62.5% from top)
+  /** Add damage effect fields */
+  private boolean isDamaged = false;
+  private long damageEffectStartTime;
+  private static final long DAMAGE_EFFECT_DURATION = 500; // 0.5 seconds of red flash
 
   /**
    * Creates a new hero instance with a reference to the game state.
@@ -116,10 +120,14 @@ public class Hero extends Entity {
     }
 
     // Set direction based on movement
-    if (dx < 0) direction = "left";
-    if (dx > 0) direction = "right";
-    if (dy < 0) direction = "up";
-    if (dy > 0) direction = "down";
+    if (dx < 0)
+      direction = "left";
+    if (dx > 0)
+      direction = "right";
+    if (dy < 0)
+      direction = "up";
+    if (dy > 0)
+      direction = "down";
 
     if (dx != 0) {
       int newX = x + dx;
@@ -148,12 +156,12 @@ public class Hero extends Entity {
    */
   private boolean checkCollision(int newX, int newY, TileManager tileManager, int tileSize) {
     // Calculate collision box dimensions
-    int boxWidth = (int)(tileSize * COLLISION_BOX_WIDTH);    // 8 pixels
-    int boxHeight = (int)(tileSize * COLLISION_BOX_HEIGHT);  // 6 pixels
-    
+    int boxWidth = (int) (tileSize * COLLISION_BOX_WIDTH); // 8 pixels
+    int boxHeight = (int) (tileSize * COLLISION_BOX_HEIGHT); // 6 pixels
+
     // Calculate offsets to position the box at the bottom-center of the sprite
-    int xOffset = (int)(tileSize * COLLISION_BOX_X_OFFSET);  // 4 pixels from left
-    int yOffset = (int)(tileSize * COLLISION_BOX_Y_OFFSET);  // 10 pixels from top
+    int xOffset = (int) (tileSize * COLLISION_BOX_X_OFFSET); // 4 pixels from left
+    int yOffset = (int) (tileSize * COLLISION_BOX_Y_OFFSET); // 10 pixels from top
 
     // Calculate collision box position
     int collisionX = newX + xOffset;
@@ -293,11 +301,13 @@ public class Hero extends Entity {
   }
 
   /**
-   * Decreases the hero's health by 1.
+   * Decreases the hero's health by 1 and triggers damage effect.
    */
   public void loseHealth() {
     if (health > 0) {
       health--;
+      isDamaged = true;
+      damageEffectStartTime = System.currentTimeMillis();
     }
   }
 
@@ -323,34 +333,68 @@ public class Hero extends Entity {
 
   /**
    * Gets the current sprite image based on direction and animation state.
+   * Also applies damage effect if the hero is currently damaged.
    * 
    * @return The BufferedImage to display
    */
   public BufferedImage getCurrentSprite() {
-    return switch (direction) {
+    BufferedImage currentSprite = switch (direction) {
       case "left" -> (spriteNum == 1) ? left1 : left2;
       case "right" -> (spriteNum == 1) ? right1 : right2;
       case "up" -> (spriteNum == 1) ? up1 : up2;
       case "down" -> (spriteNum == 1) ? down1 : down2;
-      default -> image; // Default sprite for other directions
+      default -> image;
     };
+
+    // Apply red tint effect if damaged
+    if (isDamaged) {
+      long currentTime = System.currentTimeMillis();
+      if (currentTime - damageEffectStartTime > DAMAGE_EFFECT_DURATION) {
+        isDamaged = false;
+      } else {
+        // Create a red-tinted copy of the sprite
+        BufferedImage tintedSprite = new BufferedImage(
+            currentSprite.getWidth(),
+            currentSprite.getHeight(),
+            BufferedImage.TYPE_INT_ARGB);
+
+        for (int x = 0; x < currentSprite.getWidth(); x++) {
+          for (int y = 0; y < currentSprite.getHeight(); y++) {
+            int rgb = currentSprite.getRGB(x, y);
+            if ((rgb >> 24) != 0) { // If pixel is not transparent
+              // Increase red component while reducing green and blue
+              int alpha = (rgb >> 24) & 0xff;
+              int red = Math.min(255, ((rgb >> 16) & 0xff) + 100);
+              int green = Math.max(0, ((rgb >> 8) & 0xff) - 50);
+              int blue = Math.max(0, (rgb & 0xff) - 50);
+              rgb = (alpha << 24) | (red << 16) | (green << 8) | blue;
+              tintedSprite.setRGB(x, y, rgb);
+            }
+          }
+        }
+        return tintedSprite;
+      }
+    }
+
+    return currentSprite;
   }
 
   /**
    * Gets the collision box bounds for debugging or UI purposes.
+   * 
    * @return int array containing [x, y, width, height] of collision box
    */
   public int[] getCollisionBox(int tileSize) {
-    int boxWidth = (int)(tileSize * COLLISION_BOX_WIDTH);
-    int boxHeight = (int)(tileSize * COLLISION_BOX_HEIGHT);
-    int xOffset = (int)(tileSize * COLLISION_BOX_X_OFFSET);
-    int yOffset = (int)(tileSize * COLLISION_BOX_Y_OFFSET);
-    
+    int boxWidth = (int) (tileSize * COLLISION_BOX_WIDTH);
+    int boxHeight = (int) (tileSize * COLLISION_BOX_HEIGHT);
+    int xOffset = (int) (tileSize * COLLISION_BOX_X_OFFSET);
+    int yOffset = (int) (tileSize * COLLISION_BOX_Y_OFFSET);
+
     return new int[] {
-      x + xOffset,
-      y + yOffset,
-      boxWidth,
-      boxHeight
+        x + xOffset,
+        y + yOffset,
+        boxWidth,
+        boxHeight
     };
   }
 }

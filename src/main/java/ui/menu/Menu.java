@@ -11,6 +11,7 @@ import java.awt.Font;
 import java.awt.BasicStroke;
 import java.awt.GradientPaint;
 import domain.model.GameMode;
+import ui.sound.SoundManager;
 
 public class Menu {
     /** Currently selected menu option index */
@@ -34,6 +35,13 @@ public class Menu {
     private final Color SELECTED_COLOR = new Color(255, 255, 255);
     /** Color for unselected menu options */
     private final Color UNSELECTED_COLOR = new Color(180, 180, 180);
+    /** Sound manager instance */
+    private final SoundManager soundManager;
+
+    public Menu() {
+        this.selectedOption = 0;
+        this.soundManager = SoundManager.getInstance();
+    }
 
     /**
      * Draws the menu interface.
@@ -173,10 +181,12 @@ public class Menu {
 
         if (upPressed) {
             selectedOption = (selectedOption - 1 + options.length) % options.length;
+            soundManager.playSFX(6); // Play cursor sound
             lastInputTime = currentTime;
         }
         if (downPressed) {
             selectedOption = (selectedOption + 1) % options.length;
+            soundManager.playSFX(6); // Play cursor sound
             lastInputTime = currentTime;
         }
 

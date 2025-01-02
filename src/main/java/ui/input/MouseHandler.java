@@ -11,6 +11,7 @@ import ui.render.Renderer;
 import domain.model.GameState;
 import ui.main.GamePanel;
 import domain.model.GameMode;
+import ui.sound.SoundManager;
 
 public class MouseHandler extends MouseAdapter {
     /** Reference to the game renderer for object selection */
@@ -27,6 +28,8 @@ public class MouseHandler extends MouseAdapter {
     private final int panelMargin;
     /** Reference to the game panel */
     private final GamePanel gamePanel;
+    /** Sound manager instance */
+    private final SoundManager soundManager;
 
     /**
      * Creates a new MouseHandler with necessary references for build mode
@@ -46,6 +49,7 @@ public class MouseHandler extends MouseAdapter {
         this.panelWidth = screenWidth / 5;
         this.panelMargin = 10;
         this.gamePanel = gamePanel;
+        this.soundManager = SoundManager.getInstance();
     }
 
     /**
@@ -67,6 +71,7 @@ public class MouseHandler extends MouseAdapter {
 
         // Check if click is on the cross button
         if (renderer.isWithinCrossButton(x, y)) {
+            soundManager.playSFX(6); // Play cursor sound
             if (gamePanel.getMode() == GameMode.PLAY || gamePanel.getMode() == GameMode.BUILD) {
                 gamePanel.setMode(GameMode.MENU);
                 gamePanel.resetGameState();
@@ -76,6 +81,7 @@ public class MouseHandler extends MouseAdapter {
 
         // Check if click is on the pause button in play mode
         if (gamePanel.getMode() == GameMode.PLAY && renderer.isWithinPauseButton(x, y)) {
+            soundManager.playSFX(6); // Play cursor sound
             renderer.togglePause();
             return;
         }
@@ -130,6 +136,7 @@ public class MouseHandler extends MouseAdapter {
                 // Add a small buffer zone between slots to prevent overlap
                 if (y >= currentSlotY - 5 && y < currentSlotY + slotSize + 5) {
                     renderer.setSelectedObject(i);
+                    soundManager.playSFX(6); // Play cursor sound
                     return;
                 }
             }
