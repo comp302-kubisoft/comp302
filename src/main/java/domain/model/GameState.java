@@ -107,6 +107,7 @@ public class GameState {
     if (monsters.size() >= MAX_MONSTERS) {
       return false;
     }
+    monster.setGameState(this);
     monsters.add(monster);
     return true;
   }
@@ -183,6 +184,10 @@ public class GameState {
     int heroGridY = hero.getY() / tileSize;
 
     for (Monster monster : monsters) {
+      // Update fighter movement
+      monster.update(tileManager, tileSize);
+
+      // Handle archer attacks
       if (monster.getType() == Monster.Type.ARCHER && monster.canAttack()) {
         int monsterGridX = monster.getX() / tileSize;
         int monsterGridY = monster.getY() / tileSize;
@@ -360,6 +365,12 @@ public class GameState {
     if (currentHall < TOTAL_HALLS - 1) {
       currentHall++;
 
+      // Change music if entering the final hall during gameplay
+      if (currentHall == TOTAL_HALLS - 1) {
+        soundManager.stopMusic();
+        soundManager.playMusic(5); // Play final hall music
+      }
+
       // Reset and set new spawn position
       hero.resetSpawnPosition();
       hero.setSpawnPosition(tileManager, tileManager.getTileSize());
@@ -373,6 +384,9 @@ public class GameState {
 
       return false;
     } else {
+      // Play victory sound and stop background music
+      soundManager.stopMusic();
+      soundManager.playSFX(4);
       return true; // Victory condition
     }
   }
@@ -462,5 +476,17 @@ public class GameState {
   public void resetRunesFound() {
     runesFound = 0;
     runeFoundInCurrentHall = false;
+  }
+
+  /**
+   * Updates the pause duration for all monsters.
+   * Should be called when the game is unpaused.
+   * 
+   * @param pauseDuration The duration to add to each monster's pause time
+   */
+  public void updateMonstersPauseDuration(long pauseDuration) {
+    for (Monster monster : monsters) {
+      monster.addPauseDuration(pauseDuration);
+    }
   }
 }

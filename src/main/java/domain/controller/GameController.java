@@ -70,9 +70,15 @@ public class GameController {
                 gamePanel.getMode() == GameMode.GAME_OVER ||
                 gamePanel.getMode() == GameMode.VICTORY) {
             if (inputState.escapePressed) {
+                // Store the current mode before changing it
+                GameMode previousMode = gamePanel.getMode();
                 gamePanel.setMode(GameMode.MENU);
                 inputState.reset();
                 gamePanel.resetGameState();
+                // Restart music if returning from game over or victory screen
+                if (previousMode == GameMode.GAME_OVER || previousMode == GameMode.VICTORY) {
+                    gamePanel.playMusic(0);
+                }
             }
         }
     }
@@ -164,8 +170,12 @@ public class GameController {
             // Record when the pause started
             pauseStartTime = System.currentTimeMillis();
         } else {
-            // Add the pause duration to total pause time
-            pauseDuration += System.currentTimeMillis() - pauseStartTime;
+            // Calculate the duration of this pause
+            long thisPauseDuration = System.currentTimeMillis() - pauseStartTime;
+            // Add to total pause duration
+            pauseDuration += thisPauseDuration;
+            // Update all monsters' pause duration
+            gameState.updateMonstersPauseDuration(thisPauseDuration);
         }
     }
 
@@ -188,6 +198,8 @@ public class GameController {
         // Check for game over condition
         if (hero.getHealth() <= 0) {
             gamePanel.setMode(GameMode.GAME_OVER);
+            gamePanel.stopMusic(); // Stop the background music
+            gamePanel.playSFX(3); // Play game over sound
             inputState.reset();
             return;
         }
