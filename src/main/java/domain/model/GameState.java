@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import domain.model.entity.Monster;
+import ui.sound.SoundManager;
 
 public class GameState {
 
@@ -40,6 +41,8 @@ public class GameState {
   private static final int GAME_AREA_END = 17;
   /** Maximum number of monsters allowed in play mode */
   private static final int MAX_MONSTERS = 5;
+
+  private SoundManager soundManager;
 
   /**
    * Represents an object placed in the game world.
@@ -91,6 +94,7 @@ public class GameState {
     this.currentHall = 0;
     this.monsters = new ArrayList<>();
     this.hero = new Hero(this);
+    this.soundManager = SoundManager.getInstance();
   }
 
   /**
@@ -385,12 +389,14 @@ public class GameState {
     for (PlacedObject obj : hallObjects.get(currentHall)) {
       if (obj.gridX == gridX && obj.gridY == gridY) {
         if (obj.hasRune) {
-
           runesFound++;
           runeFoundInCurrentHall = true;
 
           // Change the tile at row 18, column 9 to type 3 (open door)
           tileManager.mapTileNum[9][18] = 3;
+
+          // Play door unlock sound effect
+          soundManager.playSFX(1);
 
           return true;
         }

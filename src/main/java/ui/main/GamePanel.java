@@ -12,6 +12,7 @@ import ui.input.InputState;
 import ui.input.KeyHandler;
 import ui.input.MouseHandler;
 import ui.render.Renderer;
+import ui.sound.SoundManager;
 import ui.menu.Menu;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -58,6 +59,9 @@ public class GamePanel extends JPanel implements Runnable {
     /** Manages the game menu */
     private Menu menu;
 
+    /** Reference to the sound manager */
+    private SoundManager soundManager;
+
     /** Current mode of the game (MENU, PLAY, BUILD, HELP) */
     private GameMode currentMode = GameMode.MENU;
 
@@ -83,6 +87,9 @@ public class GamePanel extends JPanel implements Runnable {
 
         this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
         this.addMouseListener(mouseH);
+
+        this.soundManager = SoundManager.getInstance();
+        soundManager.playMusic(0);
     }
 
     /**
@@ -214,5 +221,17 @@ public class GamePanel extends JPanel implements Runnable {
             this.removeMouseListener(listener);
         }
         this.addMouseListener(mouseH);
+    }
+
+    public void playMusic(int i) {
+        soundManager.playMusic(i);
+    }
+
+    public void stopMusic() {
+        soundManager.stopMusic();
+    }
+
+    public void playSFX(int i) {
+        soundManager.playSFX(i);
     }
 }
