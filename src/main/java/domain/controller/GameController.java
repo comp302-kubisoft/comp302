@@ -169,10 +169,10 @@ public class GameController {
         } else {
             // Calculate the duration of this pause
             long thisPauseDuration = System.currentTimeMillis() - pauseStartTime;
-            // Add to total pause duration
-            pauseDuration += thisPauseDuration;
-            // Update all monsters' pause duration
-            gameState.updateMonstersPauseDuration(thisPauseDuration);
+            // Update pause duration for all time-sensitive entities
+            gameState.updatePauseDuration(thisPauseDuration);
+            // Adjust monster spawn timer
+            lastMonsterSpawnTime += thisPauseDuration;
             gameState.resumeTimer();
         }
     }
@@ -220,6 +220,9 @@ public class GameController {
 
             // Update monster states and interactions
             gameState.updateMonsters();
+
+            // Update enchantments
+            gameState.updateEnchantments();
         }
 
         // Handle hero movement
@@ -261,6 +264,8 @@ public class GameController {
             } else {
                 // Reset monster spawn timer when transitioning to a new hall
                 resetMonsterSpawnTimer();
+                // Reset enchantment spawn timer for the new hall
+                gameState.resetEnchantmentSpawnTimer();
                 // Set and start timer for new hall
                 gameState.setHallTimeLimit(gameState.getCurrentHall());
                 gameState.startTimer();
@@ -329,6 +334,8 @@ public class GameController {
         // Initialize monster spawn timer when entering play mode
         lastMonsterSpawnTime = System.currentTimeMillis();
         pauseDuration = 0;
+        // Reset enchantment spawn timer
+        gameState.resetEnchantmentSpawnTimer();
         // Set and start timer for first hall
         gameState.setHallTimeLimit(0);
         gameState.startTimer();
