@@ -83,6 +83,23 @@ public class GameState {
   }
 
   /**
+   * Time limit for each hall in milliseconds
+   */
+  private long[] hallTimeLimits;
+  /**
+   * Time remaining for current hall in milliseconds
+   */
+  private long timeRemaining;
+  /**
+   * Last time update timestamp
+   */
+  private long lastUpdateTime;
+  /**
+   * Whether timer is active
+   */
+  private boolean timerActive = false;
+
+  /**
    * Initializes a new game state with specified dimensions.
    */
   public GameState(int tileSize, int maxScreenCol, int maxScreenRow) {
@@ -95,6 +112,9 @@ public class GameState {
     this.monsters = new ArrayList<>();
     this.hero = new Hero(this);
     this.soundManager = SoundManager.getInstance();
+    this.hallTimeLimits = new long[TOTAL_HALLS];
+    this.timeRemaining = 0;
+    this.lastUpdateTime = System.currentTimeMillis();
   }
 
   /**
@@ -488,5 +508,79 @@ public class GameState {
     for (Monster monster : monsters) {
       monster.addPauseDuration(pauseDuration);
     }
+  }
+
+  /**
+   * Updates the timer if active. Should be called each game update.
+   * 
+   * @return true if time has run out, false otherwise
+   */
+  public boolean updateTimer() {
+    if (!timerActive)
+      return false;
+
+    long currentTime = System.currentTimeMillis();
+    long delta = currentTime - lastUpdateTime;
+    lastUpdateTime = currentTime;
+
+    timeRemaining -= delta;
+    return timeRemaining <= 0;
+  }
+
+  /**
+   * Starts the timer for the current hall.
+   */
+  public void startTimer() {
+    timerActive = true;
+    timeRemaining = hallTimeLimits[currentHall];
+    lastUpdateTime = System.currentTimeMillis();
+  }
+
+  /**
+   * Pauses the timer.
+   */
+  public void pauseTimer() {
+    if (timerActive) {
+      timerActive = false;
+      updateTimer(); // Update one last time before pausing
+    }
+  }
+
+  /**
+   * Resumes the timer.
+   */
+  public void resumeTimer() {
+    if (!timerActive) {
+      timerActive = true;
+      lastUpdateTime = System.currentTimeMillis();
+    }
+  }
+
+  /**
+   * Sets the time limit for a specific hall based on number of objects.
+   * 
+   * @param hall The hall number
+   */
+  public void setHallTimeLimit(int hall) {
+    if (hall >= 0 && hall < TOTAL_HALLS) {
+      int objectCount = hallObjects.get(hall).size();
+      hallTimeLimits[hall] = objectCount * 5L * 1000; // Convert to milliseconds
+    }
+  }
+
+  /**
+   * Gets the current time remaining in milliseconds.
+   */
+  public long getTimeRemaining() {
+    return timeRemaining;
+  }
+
+  /**
+   * Resets the timer state.
+   */
+  public void resetTimer() {
+    timerActive = false;
+    timeRemaining = 0;
+    lastUpdateTime = System.currentTimeMillis();
   }
 }

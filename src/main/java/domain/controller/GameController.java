@@ -151,11 +151,7 @@ public class GameController {
             } else {
                 // All halls are complete, start play mode with the first hall
                 gameState.setCurrentHall(0);
-                // Initialize monster spawn timer when entering play mode
-                lastMonsterSpawnTime = System.currentTimeMillis();
-                pauseDuration = 0;
-                gamePanel.setMode(GameMode.PLAY);
-                inputState.reset();
+                startPlayMode();
             }
         }
     }
@@ -169,6 +165,7 @@ public class GameController {
         if (isPaused) {
             // Record when the pause started
             pauseStartTime = System.currentTimeMillis();
+            gameState.pauseTimer();
         } else {
             // Calculate the duration of this pause
             long thisPauseDuration = System.currentTimeMillis() - pauseStartTime;
@@ -176,6 +173,7 @@ public class GameController {
             pauseDuration += thisPauseDuration;
             // Update all monsters' pause duration
             gameState.updateMonstersPauseDuration(thisPauseDuration);
+            gameState.resumeTimer();
         }
     }
 
@@ -196,7 +194,7 @@ public class GameController {
         Hero hero = gameState.getHero();
 
         // Check for game over condition
-        if (hero.getHealth() <= 0) {
+        if (hero.getHealth() <= 0 || (!gamePanel.getRenderer().isPaused() && gameState.updateTimer())) {
             gamePanel.setMode(GameMode.GAME_OVER);
             gamePanel.stopMusic(); // Stop the background music
             gamePanel.playSFX(3); // Play game over sound
@@ -263,6 +261,9 @@ public class GameController {
             } else {
                 // Reset monster spawn timer when transitioning to a new hall
                 resetMonsterSpawnTimer();
+                // Set and start timer for new hall
+                gameState.setHallTimeLimit(gameState.getCurrentHall());
+                gameState.startTimer();
             }
         }
     }
@@ -322,5 +323,16 @@ public class GameController {
                 updateBuildMode();
                 break;
         }
+    }
+
+    private void startPlayMode() {
+        // Initialize monster spawn timer when entering play mode
+        lastMonsterSpawnTime = System.currentTimeMillis();
+        pauseDuration = 0;
+        // Set and start timer for first hall
+        gameState.setHallTimeLimit(0);
+        gameState.startTimer();
+        gamePanel.setMode(GameMode.PLAY);
+        inputState.reset();
     }
 }
