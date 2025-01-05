@@ -610,10 +610,26 @@ public class Renderer {
         int hallWidth = g2.getFontMetrics().stringWidth(hallText);
         g2.drawString(hallText, panelX + (panelWidth - hallWidth) / 2, panelY + 55);
 
-        // Draw hearts (moved down to accommodate hall number)
+        // Draw timer
+        long timeRemaining = gameState.getTimeRemaining();
+        int seconds = (int) (timeRemaining / 1000);
+        int minutes = seconds / 60;
+        seconds = seconds % 60;
+        String timeText = String.format("%02d:%02d", minutes, seconds);
+
+        // Draw timer with color based on remaining time
+        if (seconds <= 10 && minutes == 0) {
+            g2.setColor(Color.RED);
+        }
+        g2.setFont(new Font("Monospaced", Font.BOLD, 24));
+        int timeWidth = g2.getFontMetrics().stringWidth(timeText);
+        g2.drawString(timeText, panelX + (panelWidth - timeWidth) / 2, panelY + 85);
+        g2.setColor(TEXT_COLOR);
+
+        // Draw hearts (moved down to accommodate timer)
         if (heartImage != null) {
             int heartSize = 30;
-            int heartY = panelY + 75; // Increased Y position
+            int heartY = panelY + 105; // Increased Y position
             int heartSpacing = 5;
             int totalHeartsWidth = (heartSize * gameState.getHero().getMaxHealth()) +
                     (heartSpacing * (gameState.getHero().getMaxHealth() - 1));
