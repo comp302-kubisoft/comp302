@@ -324,16 +324,15 @@ public class Renderer {
         int titleWidth = g2.getFontMetrics().stringWidth(title);
         // Draw shadow
         g2.setColor(new Color(0, 0, 0, 100));
-        g2.drawString(title, screenWidth/2 - titleWidth/2 + 2, margin + 52);
+        g2.drawString(title, screenWidth / 2 - titleWidth / 2 + 2, margin + 52);
         // Draw main title
         g2.setColor(TEXT_COLOR);
-        g2.drawString(title, screenWidth/2 - titleWidth/2, margin + 50);
+        g2.drawString(title, screenWidth / 2 - titleWidth / 2, margin + 50);
 
         // Calculate layout
         int contentStartY = margin + 100;
         int leftColumnX = margin + 60;
-        int rightColumnX = screenWidth/2 + 60;
-        int sectionSpacing = 30;
+        int rightColumnX = screenWidth / 2 + 60;
 
         // Draw Game Objective Section at the top (full width)
         drawSection(g2, "Game Objective", leftColumnX, contentStartY);
@@ -344,24 +343,24 @@ public class Renderer {
         int boxWidth = screenWidth - 2 * (margin + boxPadding);
         int boxHeight = 120; // Reduced height
         g2.setColor(WOOD_DARK);
-        g2.fillRect(leftColumnX - boxPadding, objectiveY - boxPadding, 
-                    boxWidth, boxHeight);
+        g2.fillRect(leftColumnX - boxPadding, objectiveY - boxPadding,
+                boxWidth, boxHeight);
         g2.setColor(WOOD_LIGHT);
-        g2.drawRect(leftColumnX - boxPadding, objectiveY - boxPadding, 
-                    boxWidth, boxHeight);
+        g2.drawRect(leftColumnX - boxPadding, objectiveY - boxPadding,
+                boxWidth, boxHeight);
 
         // Draw objective text
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
 
         // Draw objectives more compactly
-        g2.drawString("1. Build four mystical halls by placing objects in each hall", 
+        g2.drawString("1. Build four mystical halls by placing objects in each hall",
                 leftColumnX, objectiveY + 15);
-        g2.drawString("2. Required objects:  Earth: 6  |  Air: 9  |  Water: 13  |  Fire: 17", 
+        g2.drawString("2. Required objects:  Earth: 6  |  Air: 9  |  Water: 13  |  Fire: 17",
                 leftColumnX, objectiveY + 40);
-        g2.drawString("3. Find the hidden rune in each hall while avoiding monsters", 
+        g2.drawString("3. Find the hidden rune in each hall while avoiding monsters",
                 leftColumnX, objectiveY + 65);
-        g2.drawString("4. Once you find a rune, reach the exit door to proceed", 
+        g2.drawString("4. Once you find a rune, reach the exit door to proceed",
                 leftColumnX, objectiveY + 90);
 
         // Start Y position for the next sections
@@ -374,11 +373,11 @@ public class Renderer {
 
         // Draw object images and descriptions
         BufferedImage[] objects = {
-            buildObjectManager.getImage(0), // chest
-            buildObjectManager.getImage(1), // barrel
-            buildObjectManager.getImage(2), // torch
-            buildObjectManager.getImage(3), // skull
-            buildObjectManager.getImage(4)  // vase
+                buildObjectManager.getImage(0), // chest
+                buildObjectManager.getImage(1), // barrel
+                buildObjectManager.getImage(2), // torch
+                buildObjectManager.getImage(3), // skull
+                buildObjectManager.getImage(4) // vase
         };
 
         // Draw objects with larger spacing
@@ -415,9 +414,9 @@ public class Renderer {
 
         // Draw controls more compactly
         String[] controls = {
-            "● WASD/Arrow Keys - Move the hero",
-            "● Mouse Click - Check objects for runes",
-            "● ESC - Return to menu / Pause game"
+                "● WASD/Arrow Keys - Move the hero",
+                "● Mouse Click - Check objects for runes",
+                "● ESC - Return to menu / Pause game"
         };
         for (int i = 0; i < controls.length; i++) {
             g2.drawString(controls[i], leftColumnX, bottomSectionY + 25 + (i * 20));
@@ -425,9 +424,9 @@ public class Renderer {
 
         // Draw tips more compactly
         String[] tips = {
-            "● Stay close to objects to check them",
-            "● Watch for Wizard's rune teleports",
-            "● Keep track of checked objects"
+                "● Stay close to objects to check them",
+                "● Watch for Wizard's rune teleports",
+                "● Keep track of checked objects"
         };
         for (int i = 0; i < tips.length; i++) {
             g2.drawString(tips[i], rightColumnX, bottomSectionY + 25 + (i * 20));
@@ -437,7 +436,7 @@ public class Renderer {
         g2.setFont(new Font("Monospaced", Font.BOLD, 16));
         String returnText = "Press ESC to return to menu";
         int returnWidth = g2.getFontMetrics().stringWidth(returnText);
-        g2.drawString(returnText, screenWidth/2 - returnWidth/2, screenHeight - margin - 20);
+        g2.drawString(returnText, screenWidth / 2 - returnWidth / 2, screenHeight - margin - 20);
     }
 
     // Helper method to draw section headers
@@ -451,8 +450,7 @@ public class Renderer {
     private void drawImageWithText(Graphics2D g2, BufferedImage image, String title, int x, int y, String description) {
         int imageSize = 48;
         int textOffset = 60;
-        int totalHeight = 60; // Total height for each item including spacing
-        
+
         // Draw image with wooden background
         g2.setColor(WOOD_DARK);
         g2.fillRect(x, y, imageSize, imageSize);
@@ -465,7 +463,7 @@ public class Renderer {
         g2.setFont(new Font("Monospaced", Font.BOLD, 16));
         g2.setColor(TEXT_COLOR);
         g2.drawString(title, x + textOffset, y + 20);
-        
+
         g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
         g2.drawString(description, x + textOffset, y + 40);
     }
