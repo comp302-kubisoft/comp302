@@ -16,6 +16,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
 import domain.model.entity.Hero;
+import domain.model.entity.Enchantment;
 
 public class Renderer {
 
@@ -122,6 +123,15 @@ public class Renderer {
                 for (GameState.PlacedObject obj : gameState.getPlacedObjects()) {
                     g2.drawImage(buildObjectManager.getImage(obj.type),
                             obj.x, obj.y, tileSize, tileSize, null);
+                }
+
+                // Draw enchantments
+                for (Enchantment enchantment : gameState.getEnchantments()) {
+                    if (enchantment.isVisible()) {
+                        g2.drawImage(enchantment.getImage(),
+                                enchantment.getX(), enchantment.getY(),
+                                tileSize, tileSize, null);
+                    }
                 }
 
                 // Draw monsters
@@ -626,10 +636,10 @@ public class Renderer {
         g2.drawString(timeText, panelX + (panelWidth - timeWidth) / 2, panelY + 85);
         g2.setColor(TEXT_COLOR);
 
-        // Draw hearts (moved down to accommodate timer)
+        // Draw hearts
         if (heartImage != null) {
             int heartSize = 30;
-            int heartY = panelY + 105; // Increased Y position
+            int heartY = panelY + 105;
             int heartSpacing = 5;
             int totalHeartsWidth = (heartSize * gameState.getHero().getMaxHealth()) +
                     (heartSpacing * (gameState.getHero().getMaxHealth() - 1));
@@ -648,6 +658,66 @@ public class Renderer {
             for (int i = 0; i < gameState.getHero().getHealth(); i++) {
                 int heartX = heartsStartX + (heartSize + heartSpacing) * i;
                 g2.drawImage(heartImage, heartX, heartY, heartSize, heartSize, null);
+            }
+        }
+
+        // Draw inventory section
+        int inventoryY = panelY + 160;
+        g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+        String inventoryTitle = "Inventory";
+        int invTitleWidth = g2.getFontMetrics().stringWidth(inventoryTitle);
+        g2.drawString(inventoryTitle, panelX + (panelWidth - invTitleWidth) / 2, inventoryY);
+
+        // Draw inventory slots
+        int slotSize = 48;
+        int slotSpacing = 10;
+        int slotsStartX = panelX + (panelWidth - (3 * slotSize + 2 * slotSpacing)) / 2;
+        int slotsY = inventoryY + 20;
+
+        // Draw the three slots for storable enchantments
+        Enchantment.Type[] storableTypes = {
+                Enchantment.Type.REVEAL,
+                Enchantment.Type.CLOAK_OF_PROTECTION,
+                Enchantment.Type.LURING_GEM
+        };
+
+        for (int i = 0; i < storableTypes.length; i++) {
+            int slotX = slotsStartX + i * (slotSize + slotSpacing);
+
+            // Draw slot background
+            g2.setColor(darkColor);
+            g2.fillRect(slotX, slotsY, slotSize, slotSize);
+            g2.setColor(lightColor);
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRect(slotX, slotsY, slotSize, slotSize);
+
+            // Get enchantment count
+            int count = gameState.getEnchantmentCount(storableTypes[i]);
+
+            // Draw enchantment image if we have any
+            if (count > 0) {
+                try {
+                    String imagePath = switch (storableTypes[i]) {
+                        case REVEAL -> "/enchantments/reveal.png";
+                        case CLOAK_OF_PROTECTION -> "/enchantments/cloak.png";
+                        case LURING_GEM -> "/enchantments/luring_gem.png";
+                        default -> null;
+                    };
+                    if (imagePath != null) {
+                        BufferedImage enchImage = ImageIO.read(getClass().getResourceAsStream(imagePath));
+                        g2.drawImage(enchImage, slotX, slotsY, slotSize, slotSize, null);
+
+                        // Draw count if greater than 1
+                        if (count > 1) {
+                            g2.setColor(TEXT_COLOR);
+                            g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+                            String countText = String.valueOf(count);
+                            g2.drawString(countText, slotX + slotSize - 15, slotsY + slotSize - 5);
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -12,6 +12,7 @@ import domain.model.GameState;
 import ui.main.GamePanel;
 import domain.model.GameMode;
 import ui.sound.SoundManager;
+import domain.model.entity.Enchantment;
 
 public class MouseHandler extends MouseAdapter {
     /** Reference to the game renderer for object selection */
@@ -91,6 +92,14 @@ public class MouseHandler extends MouseAdapter {
             // Convert click coordinates to grid position
             int gridX = x / tileSize;
             int gridY = y / tileSize;
+
+            // First check for enchantment collection
+            Enchantment collectedEnchantment = gameState.collectEnchantment(x, y);
+            if (collectedEnchantment != null) {
+                gameState.handleEnchantmentCollection(collectedEnchantment);
+                soundManager.playSFX(8); // Play collection sound
+                return;
+            }
 
             // Check if there's an object at the clicked position
             if (gameState.isTileOccupied(gridX, gridY)) {

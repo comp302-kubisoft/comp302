@@ -6,12 +6,15 @@
 package domain.model;
 
 import domain.model.entity.Hero;
+import domain.model.entity.Monster;
+import domain.model.entity.Enchantment;
 import ui.tile.TileManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import domain.model.entity.Monster;
 import ui.sound.SoundManager;
+import java.util.Set;
+import java.util.HashMap;
 
 public class GameState {
 
@@ -99,6 +102,24 @@ public class GameState {
    */
   private boolean timerActive = false;
 
+  /** List of active enchantments */
+  private List<Enchantment> enchantments;
+  /** Time of last enchantment spawn */
+  private long lastEnchantmentSpawnTime;
+  /** Interval between enchantment spawns in milliseconds */
+  private static final long ENCHANTMENT_SPAWN_INTERVAL = 12000; // 12 seconds
+
+  /** Time accumulated during pauses */
+  private long pauseDuration = 0;
+
+  /** Inventory counts for storable enchantments */
+  private final java.util.Map<Enchantment.Type, Integer> enchantmentInventory;
+  /** Types of enchantments that can be stored */
+  private static final Set<Enchantment.Type> STORABLE_ENCHANTMENTS = Set.of(
+      Enchantment.Type.REVEAL,
+      Enchantment.Type.CLOAK_OF_PROTECTION,
+      Enchantment.Type.LURING_GEM);
+
   /**
    * Initializes a new game state with specified dimensions.
    */
@@ -115,6 +136,13 @@ public class GameState {
     this.hallTimeLimits = new long[TOTAL_HALLS];
     this.timeRemaining = 0;
     this.lastUpdateTime = System.currentTimeMillis();
+    this.enchantments = new ArrayList<>();
+    this.lastEnchantmentSpawnTime = System.currentTimeMillis();
+    this.enchantmentInventory = new HashMap<>();
+    // Initialize inventory counts to 0
+    for (Enchantment.Type type : STORABLE_ENCHANTMENTS) {
+      enchantmentInventory.put(type, 0);
+    }
   }
 
   /**
@@ -346,7 +374,7 @@ public class GameState {
   public boolean isHeroAdjacent(int gridX, int gridY, int tileSize) {
     // Get hero's grid position using the same tileSize for both coordinates
     int heroGridX = hero.getX() / tileSize;
-    int heroGridY = hero.getY() / tileSize;
+    int heroGridY = hero.getY() / tileManager.getTileSize();
 
     // Check if hero is in any adjacent tile
     return (Math.abs(heroGridX - gridX) == 1 && heroGridY == gridY) || // Left or right
@@ -543,6 +571,10 @@ public class GameState {
     if (timerActive) {
       timerActive = false;
       updateTimer(); // Update one last time before pausing
+      // Pause all enchantments
+      for (Enchantment enchantment : enchantments) {
+        enchantment.setPaused(true);
+      }
     }
   }
 
@@ -553,6 +585,10 @@ public class GameState {
     if (!timerActive) {
       timerActive = true;
       lastUpdateTime = System.currentTimeMillis();
+      // Unpause all enchantments
+      for (Enchantment enchantment : enchantments) {
+        enchantment.setPaused(false);
+      }
     }
   }
 
@@ -564,7 +600,11 @@ public class GameState {
   public void setHallTimeLimit(int hall) {
     if (hall >= 0 && hall < TOTAL_HALLS) {
       int objectCount = hallObjects.get(hall).size();
-      hallTimeLimits[hall] = objectCount * 5L * 1000; // Convert to milliseconds
+      long timeLimit = objectCount * 5L * 1000; // Convert to milliseconds
+      hallTimeLimits[hall] = timeLimit;
+      if (hall == currentHall) {
+        timeRemaining = timeLimit;
+      }
     }
   }
 
@@ -580,7 +620,143 @@ public class GameState {
    */
   public void resetTimer() {
     timerActive = false;
-    timeRemaining = 0;
+    timeRemaining = hallTimeLimits[currentHall];
     lastUpdateTime = System.currentTimeMillis();
+  }
+
+  /**
+   * Updates enchantment states, spawning new ones and removing expired ones.
+   * Should be called each game update.
+   */
+  public void updateEnchantments() {
+    // Remove expired enchantments
+    enchantments.removeIf(Enchantment::hasExpired);
+
+    // Check if it's time to spawn a new enchantment
+    long currentTime = System.currentTimeMillis();
+    long effectiveTime = currentTime - pauseDuration;
+    long effectiveLastSpawnTime = lastEnchantmentSpawnTime - pauseDuration;
+
+    if (effectiveTime - effectiveLastSpawnTime >= ENCHANTMENT_SPAWN_INTERVAL) {
+      spawnRandomEnchantment();
+      lastEnchantmentSpawnTime = currentTime;
+    }
+  }
+
+  /**
+   * Spawns a random enchantment at a random empty location.
+   */
+  private void spawnRandomEnchantment() {
+    // Get a random empty position
+    int[] position = findRandomEmptyPosition();
+    if (position == null)
+      return;
+
+    // Choose a random enchantment type
+    Enchantment.Type[] types = Enchantment.Type.values();
+    Enchantment.Type randomType = types[new Random().nextInt(types.length)];
+
+    // Create and add the enchantment
+    enchantments.add(new Enchantment(randomType, position[0], position[1]));
+  }
+
+  /**
+   * Gets the list of active enchantments.
+   */
+  public List<Enchantment> getEnchantments() {
+    return enchantments;
+  }
+
+  /**
+   * Checks if an enchantment exists at the given coordinates and collects it.
+   * 
+   * @param x The x coordinate to check
+   * @param y The y coordinate to check
+   * @return The collected enchantment, or null if none found
+   */
+  public Enchantment collectEnchantment(int x, int y) {
+    int tileSize = tileManager.getTileSize();
+    for (Enchantment enchantment : enchantments) {
+      // Check if click is within the enchantment's tile
+      if (x >= enchantment.getX() && x < enchantment.getX() + tileSize &&
+          y >= enchantment.getY() && y < enchantment.getY() + tileSize) {
+        enchantments.remove(enchantment);
+        return enchantment;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Called when the game is unpaused.
+   * Updates pause duration for all time-sensitive entities.
+   * 
+   * @param pauseDuration The duration of the pause in milliseconds
+   */
+  public void updatePauseDuration(long pauseDuration) {
+    this.pauseDuration += pauseDuration;
+    // Update monsters' pause duration
+    for (Monster monster : monsters) {
+      monster.addPauseDuration(pauseDuration);
+    }
+    // Update enchantments' pause duration
+    for (Enchantment enchantment : enchantments) {
+      enchantment.addPauseDuration(pauseDuration);
+    }
+    // Adjust spawn timers
+    lastEnchantmentSpawnTime += pauseDuration;
+  }
+
+  /**
+   * Resets the enchantment spawn timer.
+   * Called when transitioning between halls or starting the game.
+   */
+  public void resetEnchantmentSpawnTimer() {
+    lastEnchantmentSpawnTime = System.currentTimeMillis();
+    // Clear any existing enchantments
+    enchantments.clear();
+  }
+
+  /**
+   * Handles the collection of an enchantment.
+   * Immediate effect enchantments are applied directly,
+   * while storable enchantments are added to inventory.
+   * 
+   * @param enchantment The enchantment that was collected
+   */
+  public void handleEnchantmentCollection(Enchantment enchantment) {
+    Enchantment.Type type = enchantment.getType();
+
+    if (type == Enchantment.Type.EXTRA_TIME) {
+      // Add 5 seconds (5000 milliseconds) to the current timer
+      timeRemaining += 5000;
+
+    } else if (type == Enchantment.Type.EXTRA_LIFE) {
+      // TODO: Implement extra life effect
+    } else if (STORABLE_ENCHANTMENTS.contains(type)) {
+      // Add to inventory
+      enchantmentInventory.put(type, enchantmentInventory.get(type) + 1);
+
+    }
+  }
+
+  /**
+   * Gets the current count of a storable enchantment in inventory.
+   * 
+   * @param type The type of enchantment to check
+   * @return The number of that enchantment in inventory
+   */
+  public int getEnchantmentCount(Enchantment.Type type) {
+    return enchantmentInventory.getOrDefault(type, 0);
+  }
+
+  /**
+   * Resets the enchantment inventory.
+   * Called when resetting the game state.
+   */
+  public void resetEnchantmentInventory() {
+    for (Enchantment.Type type : STORABLE_ENCHANTMENTS) {
+      enchantmentInventory.put(type, 0);
+    }
   }
 }
