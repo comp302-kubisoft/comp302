@@ -18,6 +18,16 @@ public class InputState {
     public boolean enterPressed = false;
     /** Flag indicating if the escape/cancel key is pressed */
     public boolean escapePressed = false;
+    /** Flag indicating if the reveal key is pressed */
+    public boolean revealPressed = false;
+    /** Flag indicating if the cloak protection key is pressed */
+    public boolean cloakPressed = false;
+    /** Flag indicating if the luring gem key is pressed */
+    public boolean luringGemPressed = false;
+    /** Flag indicating if the throw gem is active */
+    public boolean throwGemActive = false;
+    /** Direction of the throw gem */
+    public String throwDirection = null;
 
     /**
      * Resets all input states to their default (unpressed) state.
@@ -30,5 +40,10 @@ public class InputState {
         rightPressed = false;
         enterPressed = false;
         escapePressed = false;
+        revealPressed = false;
+        cloakPressed = false;
+        luringGemPressed = false;
+        throwGemActive = false;
+        throwDirection = null;
     }
 }

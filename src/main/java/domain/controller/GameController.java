@@ -271,6 +271,38 @@ public class GameController {
                 gameState.startTimer();
             }
         }
+
+        // Handle reveal enchantment usage
+        if (inputState.revealPressed) {
+            gameState.useRevealEnchantment();
+            inputState.revealPressed = false;
+        }
+
+        // Update reveal effect
+        gameState.updateRevealEffect();
+
+        // Handle cloak enchantment usage
+        if (inputState.cloakPressed) {
+            gameState.useCloakEnchantment();
+            inputState.cloakPressed = false;
+        }
+
+        // Update cloak effect
+        gameState.updateCloakEffect();
+
+        // Handle luring gem usage
+        if (inputState.luringGemPressed) {
+            inputState.throwGemActive = true;
+            inputState.luringGemPressed = false;
+        }
+        
+        if (inputState.throwGemActive && inputState.throwDirection != null) {
+            gameState.throwLuringGem(inputState.throwDirection);
+            inputState.throwGemActive = false;
+            inputState.throwDirection = null;
+        }
+        
+        gameState.updateLuringGemEffect();
     }
 
     /**

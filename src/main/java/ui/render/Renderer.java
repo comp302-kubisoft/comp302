@@ -17,6 +17,8 @@ import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
 import domain.model.entity.Hero;
 import domain.model.entity.Enchantment;
+import java.awt.RadialGradientPaint;
+import java.util.Random;
 
 public class Renderer {
 
@@ -161,6 +163,8 @@ public class Renderer {
                 // Draw pause and cross buttons (always on top)
                 drawPauseButton(g2);
                 drawCrossButton(g2);
+
+                drawLuringGem(g2);
                 break;
             case BUILD:
                 drawBuildMode(g2);
@@ -720,6 +724,35 @@ public class Renderer {
                 }
             }
         }
+
+        // Draw reveal effect if active
+        if (gameState.isRevealEffectActive()) {
+            int tileSize = gameState.getTileManager().getTileSize();
+            int radius = tileSize * 3; // 6 tile diameter (adjust as needed)
+            
+            // Calculate center of reveal effect
+            int centerX = (gameState.getRevealAreaX() + 2) * tileSize;
+            int centerY = (gameState.getRevealAreaY() + 2) * tileSize;
+            
+            // Calculate fade based on remaining time
+            float progress = gameState.getRevealProgress(); // 0.0 to 1.0
+            int alpha = (int)(180 * (1.0 - progress)); // Fade from 180 to 0
+            
+            // Create a radial gradient for smooth circular effect
+            RadialGradientPaint gradient = new RadialGradientPaint(
+                centerX, centerY, radius,
+                new float[]{0.0f, 0.7f, 1.0f},
+                new Color[]{
+                    new Color(255, 255, 100, alpha),      // Center: yellow
+                    new Color(255, 255, 100, alpha/2),    // Middle: semi-transparent
+                    new Color(255, 255, 100, 0)          // Edge: fully transparent
+                }
+            );
+            
+            // Draw the circular reveal effect
+            g2.setPaint(gradient);
+            g2.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+        }
     }
 
     private void drawGameOverScreen(Graphics2D g2) {
@@ -788,6 +821,74 @@ public class Renderer {
                 return "Hall of Fire";
             default:
                 return "Unknown Hall";
+        }
+    }
+
+    private void drawLuringGem(Graphics2D g2) {
+        if (gameState.isLuringGemActive()) {
+            int tileSize = gameState.getTileManager().getTileSize();
+            BufferedImage gemImage = gameState.getLuringGemImage();
+            float fadeAlpha = gameState.getGemFadeAlpha();
+            
+            // Calculate current position based on throw progress
+            float progress = gameState.getGemThrowProgress();
+            int startX = gameState.getGemStartX();
+            int startY = gameState.getGemStartY();
+            int targetX = gameState.getGemTargetX();
+            int targetY = gameState.getGemTargetY();
+            
+            // Use easing function for smooth movement
+            float eased = 1 - (1 - progress) * (1 - progress);
+            int currentX = (int) (startX + (targetX - startX) * eased);
+            int currentY = (int) (startY + (targetY - startY) * eased);
+            
+            // Calculate glow effect intensity (pulsing)
+            long currentTime = System.currentTimeMillis();
+            float glowIntensity = (float) Math.abs(Math.sin(currentTime * 0.005)) * 0.5f + 0.5f;
+            
+            // Draw outer glow with fade
+            int glowSize = (int) (tileSize * (1.2f + glowIntensity * 0.2f));
+            int glowX = currentX + (tileSize - glowSize) / 2;
+            int glowY = currentY + (tileSize - glowSize) / 2;
+            
+            // Create radial gradient for glow with fade
+            RadialGradientPaint glow = new RadialGradientPaint(
+                currentX + tileSize/2, currentY + tileSize/2, glowSize/2,
+                new float[]{0.0f, 0.5f, 1.0f},
+                new Color[]{
+                    new Color(1f, 0.8f, 0.2f, 0.4f * glowIntensity * fadeAlpha),  // Gold
+                    new Color(1f, 0.3f, 0.1f, 0.2f * glowIntensity * fadeAlpha),  // Red
+                    new Color(1f, 1f, 1f, 0f)                                      // Transparent
+                }
+            );
+            
+            // Draw the glow
+            g2.setPaint(glow);
+            g2.fillOval(glowX, glowY, glowSize, glowSize);
+            
+            // Draw the gem image with fade
+            if (gemImage != null) {
+                // Set alpha composite for fading
+                AlphaComposite alphaComposite = AlphaComposite.getInstance(
+                    AlphaComposite.SRC_OVER, fadeAlpha);
+                g2.setComposite(alphaComposite);
+                
+                g2.drawImage(gemImage, currentX, currentY, tileSize, tileSize, null);
+                
+                // Add sparkle effects with fade
+                Random random = new Random(currentTime / 100);
+                for (int i = 0; i < 3; i++) {
+                    float sparkleX = currentX + random.nextFloat() * tileSize;
+                    float sparkleY = currentY + random.nextFloat() * tileSize;
+                    float sparkleSize = 2 + random.nextFloat() * 3;
+                    
+                    g2.setColor(new Color(1f, 1f, 1f, random.nextFloat() * 0.7f * fadeAlpha));
+                    g2.fillOval((int)sparkleX, (int)sparkleY, (int)sparkleSize, (int)sparkleSize);
+                }
+                
+                // Reset composite to default
+                g2.setComposite(AlphaComposite.SrcOver);
+            }
         }
     }
 }

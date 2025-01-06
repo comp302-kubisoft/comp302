@@ -33,6 +33,8 @@ public class Monster extends Entity {
     private boolean isCastingSpell = false;
     private static final long SPELL_EFFECT_DURATION = 500; // 0.5 seconds spell effect
     private long pauseDuration = 0; // Track total pause duration
+    private TileManager tileManager;
+    private int tileSize;
 
     public Monster(Type type, int x, int y) {
         this.monsterType = type;
@@ -119,19 +121,26 @@ public class Monster extends Entity {
      * @param tileSize    Size of each tile in pixels
      */
     public void update(TileManager tileManager, int tileSize) {
+        this.tileManager = tileManager;
+        this.tileSize = tileSize;
+
         if (monsterType == Type.ARCHER && canAttack()) {
             Hero hero = gameState.getHero();
-            int heroGridX = hero.getX() / tileSize;
-            int heroGridY = hero.getY() / tileSize;
-            int monsterGridX = x / tileSize;
-            int monsterGridY = y / tileSize;
+            
+            // First check if hero is cloaked - if so, archer can't see or attack at all
+            if (!gameState.isCloakEffectActive()) {
+                int heroGridX = hero.getX() / tileSize;
+                int heroGridY = hero.getY() / tileSize;
+                int monsterGridX = x / tileSize;
+                int monsterGridY = y / tileSize;
 
-            int distance = Math.abs(heroGridX - monsterGridX) + Math.abs(heroGridY - monsterGridY);
+                int distance = Math.abs(heroGridX - monsterGridX) + Math.abs(heroGridY - monsterGridY);
 
-            if (distance <= ARCHER_ATTACK_RANGE) {
-                hero.loseHealth();
-                setAttackCooldown();
-                soundManager.playSFX(2); // Play damage sound
+                if (distance <= ARCHER_ATTACK_RANGE) {
+                    hero.loseHealth(this);
+                    setAttackCooldown();
+                    soundManager.playSFX(2);
+                }
             }
         } else if (monsterType == Type.WIZARD) {
             // Check if it's time to teleport rune
@@ -144,24 +153,30 @@ public class Monster extends Entity {
 
         // Fighter movement update (only if it's a fighter)
         if (monsterType == Type.FIGHTER) {
-            // Check if it's time to change direction
-            long currentTime = getAdjustedTime();
-            if (currentTime - lastDirectionChange >= DIRECTION_CHANGE_INTERVAL) {
-                direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
-                lastDirectionChange = currentTime;
-            }
+            // First check if there's an active gem to follow
+            if (gameState.isLuringGemActive()) {
+                moveTowardsGem();
+            } else {
+                // Only do random movement if not following a gem
+                // Check if it's time to change direction
+                long currentTime = getAdjustedTime();
+                if (currentTime - lastDirectionChange >= DIRECTION_CHANGE_INTERVAL) {
+                    direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
+                    lastDirectionChange = currentTime;
+                }
 
-            // Calculate movement based on direction
-            int dx = 0, dy = 0;
-            switch (direction) {
-                case "up" -> dy = -speed;
-                case "down" -> dy = speed;
-                case "left" -> dx = -speed;
-                case "right" -> dx = speed;
-            }
+                // Calculate movement based on direction
+                int dx = 0, dy = 0;
+                switch (direction) {
+                    case "up" -> dy = -speed;
+                    case "down" -> dy = speed;
+                    case "left" -> dx = -speed;
+                    case "right" -> dx = speed;
+                }
 
-            // Try to move in the calculated direction
-            moveIfPossible(dx, dy, tileManager, tileSize);
+                // Try to move in the calculated direction
+                moveIfPossible(dx, dy, tileManager, tileSize);
+            }
         }
     }
 
@@ -222,11 +237,11 @@ public class Monster extends Entity {
             int heroGridX = (hero.getX() + tileSize / 2) / tileSize;
             int heroGridY = (hero.getY() + tileSize / 2) / tileSize;
             if (gridX == heroGridX && gridY == heroGridY) {
-                // If fighter collides with hero and can attack, make hero lose health
+                // Only fighter should damage on collision
                 if (monsterType == Type.FIGHTER && canAttack()) {
-                    hero.loseHealth();
+                    hero.loseHealth(this);
                     setAttackCooldown();
-                    soundManager.playSFX(2); // Play damage sound
+                    soundManager.playSFX(2);
                 }
                 return true;
             }
@@ -325,6 +340,34 @@ public class Monster extends Entity {
             } else {
                 // If no other objects available, put it back
                 currentRuneHolder.hasRune = true;
+            }
+        }
+    }
+
+    private void moveTowardsGem() {
+        if (gameState.isLuringGemActive() && monsterType == Type.FIGHTER) {
+            int gemX = gameState.getGemX() * tileSize;
+            int gemY = gameState.getGemY() * tileSize;
+            
+            // Calculate direction to gem
+            int dx = 0, dy = 0;
+            
+            if (x < gemX) dx = speed;
+            else if (x > gemX) dx = -speed;
+            
+            if (y < gemY) dy = speed;
+            else if (y > gemY) dy = -speed;
+            
+            // Try to move towards gem
+            if (dx != 0) {
+                if (!checkCollision(x + dx, y, tileManager, tileSize)) {
+                    x += dx;
+                }
+            }
+            if (dy != 0) {
+                if (!checkCollision(x, y + dy, tileManager, tileSize)) {
+                    y += dy;
+                }
             }
         }
     }
