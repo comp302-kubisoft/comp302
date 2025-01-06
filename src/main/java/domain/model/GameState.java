@@ -15,6 +15,9 @@ import java.util.Random;
 import ui.sound.SoundManager;
 import java.util.Set;
 import java.util.HashMap;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 
 public class GameState {
 
@@ -120,6 +123,12 @@ public class GameState {
       Enchantment.Type.CLOAK_OF_PROTECTION,
       Enchantment.Type.LURING_GEM);
 
+  private BufferedImage luringGemImage;
+  private float gemThrowProgress = 0f; // 0 to 1, for throw animation
+  private int gemStartX, gemStartY; // Starting position for throw animation
+  private int gemTargetX, gemTargetY; // Target position for throw animation
+  private static final float GEM_THROW_SPEED = 0.1f; // Adjust for faster/slower throws
+
   /**
    * Initializes a new game state with specified dimensions.
    */
@@ -143,6 +152,7 @@ public class GameState {
     for (Enchantment.Type type : STORABLE_ENCHANTMENTS) {
       enchantmentInventory.put(type, 0);
     }
+    loadLuringGemImage();
   }
 
   /**
@@ -243,7 +253,7 @@ public class GameState {
         int distance = calculateDistance(heroGridX, heroGridY, monsterGridX, monsterGridY);
 
         if (distance <= monster.getAttackRange()) {
-          hero.loseHealth();
+          hero.loseHealth(monster);
           monster.setAttackCooldown();
         }
       }
@@ -705,6 +715,13 @@ public class GameState {
     }
     // Adjust spawn timers
     lastEnchantmentSpawnTime += pauseDuration;
+    // Adjust reveal effect timer if active
+    if (revealEffectActive) {
+      revealEffectStartTime += pauseDuration;
+    }
+    if (cloakEffectActive) {
+      cloakEffectStartTime += pauseDuration;
+    }
   }
 
   /**
@@ -732,7 +749,8 @@ public class GameState {
       timeRemaining += 5000;
 
     } else if (type == Enchantment.Type.EXTRA_LIFE) {
-      // TODO: Implement extra life effect
+      // Increase hero's health by 1
+      hero.gainHealth();
     } else if (STORABLE_ENCHANTMENTS.contains(type)) {
       // Add to inventory
       enchantmentInventory.put(type, enchantmentInventory.get(type) + 1);
@@ -758,5 +776,298 @@ public class GameState {
     for (Enchantment.Type type : STORABLE_ENCHANTMENTS) {
       enchantmentInventory.put(type, 0);
     }
+  }
+
+  /**
+   * Adds a reveal effect to the game.
+   * Should be called when a reveal enchantment is used.
+   */
+  public void useRevealEnchantment() {
+    // Check if we have a reveal enchantment in inventory
+    if (enchantmentInventory.getOrDefault(Enchantment.Type.REVEAL, 0) > 0) {
+      // Find object with rune
+      for (PlacedObject obj : hallObjects.get(currentHall)) {
+        if (obj.hasRune) {
+          // Calculate reveal area centered around the rune
+          revealAreaX = Math.max(GAME_AREA_START, 
+              obj.gridX - (REVEAL_AREA_SIZE / 2));
+          revealAreaY = Math.max(GAME_AREA_START, 
+              obj.gridY - (REVEAL_AREA_SIZE / 2));
+          
+          // Ensure reveal area doesn't go out of bounds
+          if (revealAreaX + REVEAL_AREA_SIZE > GAME_AREA_END) {
+              revealAreaX = GAME_AREA_END - REVEAL_AREA_SIZE;
+          }
+          if (revealAreaY + REVEAL_AREA_SIZE > GAME_AREA_END) {
+              revealAreaY = GAME_AREA_END - REVEAL_AREA_SIZE;
+          }
+          
+          // Activate reveal effect
+          revealEffectActive = true;
+          revealEffectStartTime = System.currentTimeMillis() - pauseDuration;
+          
+          // Consume one reveal enchantment
+          enchantmentInventory.put(Enchantment.Type.REVEAL, 
+              enchantmentInventory.get(Enchantment.Type.REVEAL) - 1);
+          break;
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if the reveal effect is active.
+   * Should be called during game updates.
+   * 
+   * @return true if the reveal effect is active, false otherwise
+   */
+  public boolean isRevealEffectActive() {
+    return revealEffectActive;
+  }
+
+  /**
+   * Gets the starting X coordinate of the reveal area.
+   * Should be called during game updates.
+   * 
+   * @return The starting X coordinate of the reveal area
+   */
+  public int getRevealAreaX() {
+    return revealAreaX;
+  }
+
+  /**
+   * Gets the starting Y coordinate of the reveal area.
+   * Should be called during game updates.
+   * 
+   * @return The starting Y coordinate of the reveal area
+   */
+  public int getRevealAreaY() {
+    return revealAreaY;
+  }
+
+  /**
+   * Gets the size of the reveal area.
+   * Should be called during game updates.
+   * 
+   * @return The size of the reveal area
+   */
+  public int getRevealAreaSize() {
+    return REVEAL_AREA_SIZE;
+  }
+
+  /**
+   * Updates the reveal effect.
+   * Should be called during game updates.
+   */
+  public void updateRevealEffect() {
+    if (revealEffectActive) {
+      long currentTime = System.currentTimeMillis() - pauseDuration;
+      if (currentTime - revealEffectStartTime >= REVEAL_EFFECT_DURATION) {
+        revealEffectActive = false;
+      }
+    }
+  }
+
+  /**
+   * Adds a cloak effect to the game.
+   * Should be called when a cloak enchantment is used.
+   */
+  public void useCloakEnchantment() {
+    // Check if we have a cloak enchantment in inventory
+    if (enchantmentInventory.getOrDefault(Enchantment.Type.CLOAK_OF_PROTECTION, 0) > 0) {
+      // Activate cloak effect
+      cloakEffectActive = true;
+      cloakEffectStartTime = System.currentTimeMillis() - pauseDuration;
+      
+      // Consume one cloak enchantment
+      enchantmentInventory.put(Enchantment.Type.CLOAK_OF_PROTECTION, 
+          enchantmentInventory.get(Enchantment.Type.CLOAK_OF_PROTECTION) - 1);
+    }
+  }
+
+  /**
+   * Checks if the cloak effect is active.
+   * Should be called during game updates.
+   * 
+   * @return true if the cloak effect is active, false otherwise
+   */
+  public boolean isCloakEffectActive() {
+    return cloakEffectActive;
+  }
+
+  /**
+   * Updates the cloak effect.
+   * Should be called during game updates.
+   */
+  public void updateCloakEffect() {
+    if (cloakEffectActive) {
+      long currentTime = System.currentTimeMillis() - pauseDuration;
+      if (currentTime - cloakEffectStartTime >= CLOAK_EFFECT_DURATION) {
+        cloakEffectActive = false;
+      }
+    }
+  }
+
+  private boolean revealEffectActive = false;
+  private long revealEffectStartTime = 0;
+  private int revealAreaX = 0;
+  private int revealAreaY = 0;
+  private static final long REVEAL_EFFECT_DURATION = 10000; // 10 seconds
+  private static final int REVEAL_AREA_SIZE = 4; // 4x4 tiles
+  private boolean cloakEffectActive = false;
+  private long cloakEffectStartTime = 0;
+  private static final long CLOAK_EFFECT_DURATION = 20000; // 20 seconds
+
+  /**
+   * Gets the remaining time for cloak effect in milliseconds.
+   * @return Remaining time in milliseconds, or 0 if not active
+   */
+  public long getCloakRemainingTime() {
+    if (!cloakEffectActive) return 0;
+    long currentTime = System.currentTimeMillis() - pauseDuration;
+    long remainingTime = CLOAK_EFFECT_DURATION - (currentTime - cloakEffectStartTime);
+    return Math.max(0, remainingTime);
+  }
+
+  /**
+   * Gets the progress of the reveal effect from 0.0 (start) to 1.0 (end)
+   */
+  public float getRevealProgress() {
+    if (!revealEffectActive) return 1.0f;
+    long currentTime = System.currentTimeMillis() - pauseDuration;
+    float progress = (float)(currentTime - revealEffectStartTime) / REVEAL_EFFECT_DURATION;
+    return Math.min(1.0f, Math.max(0.0f, progress));
+  }
+
+  private boolean luringGemActive = false;
+  private int gemX = 0;
+  private int gemY = 0;
+  private long gemStartTime = 0;
+  private static final long GEM_EFFECT_DURATION = 10000; // 10 seconds
+  private static final int GEM_THROW_DISTANCE = 5;
+  
+  private void loadLuringGemImage() {
+    try {
+        luringGemImage = ImageIO.read(getClass().getResourceAsStream("/enchantments/luring_gem.png"));
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+  }
+
+  public void throwLuringGem(String direction) {
+    if (enchantmentInventory.getOrDefault(Enchantment.Type.LURING_GEM, 0) > 0) {
+      // Get hero's position as starting point
+      int startX = hero.getX() / tileManager.getTileSize();
+      int startY = hero.getY() / tileManager.getTileSize();
+      
+      // Store actual pixel coordinates for animation
+      gemStartX = hero.getX();
+      gemStartY = hero.getY();
+      
+      // Calculate target position
+      int targetX = startX;
+      int targetY = startY;
+      
+      switch (direction) {
+        case "left" -> targetX = startX - GEM_THROW_DISTANCE;
+        case "right" -> targetX = startX + GEM_THROW_DISTANCE;
+        case "up" -> targetY = startY - GEM_THROW_DISTANCE;
+        case "down" -> targetY = startY + GEM_THROW_DISTANCE;
+      }
+      
+      // Adjust for boundaries and objects
+      while ((targetX < GAME_AREA_START || targetX > GAME_AREA_END || 
+             targetY < GAME_AREA_START || targetY > GAME_AREA_END || 
+             isTileOccupied(targetX, targetY)) && 
+             (targetX != startX || targetY != startY)) {
+        
+        switch (direction) {
+          case "left" -> targetX++;
+          case "right" -> targetX--;
+          case "up" -> targetY++;
+          case "down" -> targetY--;
+        }
+      }
+      
+      // Place gem if valid position found
+      if (targetX != startX || targetY != startY) {
+        gemX = targetX;
+        gemY = targetY;
+        gemTargetX = gemX * tileManager.getTileSize();
+        gemTargetY = gemY * tileManager.getTileSize();
+        luringGemActive = true;
+        gemStartTime = System.currentTimeMillis() - pauseDuration;
+        gemThrowProgress = 0f;
+        
+        // Consume one luring gem
+        enchantmentInventory.put(Enchantment.Type.LURING_GEM,
+            enchantmentInventory.get(Enchantment.Type.LURING_GEM) - 1);
+      }
+    }
+  }
+  
+  public boolean isLuringGemActive() {
+    return luringGemActive;
+  }
+  
+  public int getGemX() {
+    return gemX;
+  }
+  
+  public int getGemY() {
+    return gemY;
+  }
+  
+  public void updateLuringGemEffect() {
+    if (luringGemActive) {
+      // Update throw animation
+      if (gemThrowProgress < 1.0f) {
+          gemThrowProgress += GEM_THROW_SPEED;
+          if (gemThrowProgress > 1.0f) gemThrowProgress = 1.0f;
+      }
+      
+      // Check duration
+      long currentTime = System.currentTimeMillis() - pauseDuration;
+      if (currentTime - gemStartTime >= GEM_EFFECT_DURATION) {
+          luringGemActive = false;
+      }
+    }
+  }
+
+  public float getGemThrowProgress() {
+    return gemThrowProgress;
+  }
+
+  public int getGemStartX() {
+    return gemStartX;
+  }
+
+  public int getGemStartY() {
+    return gemStartY;
+  }
+
+  public int getGemTargetX() {
+    return gemTargetX;
+  }
+
+  public int getGemTargetY() {
+    return gemTargetY;
+  }
+
+  public BufferedImage getLuringGemImage() {
+    return luringGemImage;
+  }
+
+  private static final long GEM_FADE_DURATION = 2000; // Last 2 seconds fade out
+
+  public float getGemFadeAlpha() {
+    if (!luringGemActive) return 0f;
+    long currentTime = System.currentTimeMillis() - pauseDuration;
+    long timeLeft = (gemStartTime + GEM_EFFECT_DURATION) - currentTime;
+    
+    if (timeLeft <= GEM_FADE_DURATION) {
+        return Math.max(0f, timeLeft / (float)GEM_FADE_DURATION);
+    }
+    return 1.0f;
   }
 }

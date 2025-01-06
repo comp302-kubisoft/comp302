@@ -64,6 +64,24 @@ public class KeyHandler implements KeyListener {
             case KeyEvent.VK_ESCAPE:
                 inputState.escapePressed = true;
                 break;
+            case KeyEvent.VK_R:
+                inputState.revealPressed = true;
+                break;
+            case KeyEvent.VK_P:
+                inputState.cloakPressed = true;
+                break;
+            case KeyEvent.VK_B:
+                inputState.luringGemPressed = true;
+                break;
+        }
+        
+        if (inputState.throwGemActive) {
+            switch (code) {
+                case KeyEvent.VK_A, KeyEvent.VK_LEFT -> inputState.throwDirection = "left";
+                case KeyEvent.VK_D, KeyEvent.VK_RIGHT -> inputState.throwDirection = "right";
+                case KeyEvent.VK_W, KeyEvent.VK_UP -> inputState.throwDirection = "up";
+                case KeyEvent.VK_S, KeyEvent.VK_DOWN -> inputState.throwDirection = "down";
+            }
         }
     }
 
@@ -99,6 +117,12 @@ public class KeyHandler implements KeyListener {
                 break;
             case KeyEvent.VK_ESCAPE:
                 inputState.escapePressed = false;
+                break;
+            case KeyEvent.VK_R:
+                inputState.revealPressed = false;
+                break;
+            case KeyEvent.VK_P:
+                inputState.cloakPressed = false;
                 break;
         }
     }

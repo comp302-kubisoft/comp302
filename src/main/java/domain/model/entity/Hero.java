@@ -302,12 +302,20 @@ public class Hero extends Entity {
 
   /**
    * Decreases the hero's health by 1 and triggers damage effect.
+   * Won't take damage from archers if cloaked.
    */
-  public void loseHealth() {
+  public void loseHealth(Monster attacker) {
+    // If attacker is an archer and hero is cloaked, ignore the damage
+    if (attacker != null && 
+        attacker.getType() == Monster.Type.ARCHER && 
+        gameState.isCloakEffectActive()) {
+        return;
+    }
+
     if (health > 0) {
-      health--;
-      isDamaged = true;
-      damageEffectStartTime = System.currentTimeMillis();
+        health--;
+        isDamaged = true;
+        damageEffectStartTime = System.currentTimeMillis();
     }
   }
 
@@ -346,7 +354,44 @@ public class Hero extends Entity {
       default -> image;
     };
 
-    // Apply red tint effect if damaged
+    // Apply cloak effect if active
+    if (gameState.isCloakEffectActive()) {
+        // Get remaining time of cloak effect
+        long remainingTime = gameState.getCloakRemainingTime();
+        
+        // For last 3 seconds, blink between normal and shadow
+        if (remainingTime <= 3000) {
+            // Blink every 250ms
+            if ((System.currentTimeMillis() % 500) < 250) {
+                return currentSprite; // Show normal sprite
+            }
+        }
+        
+        // Create shadowy version of sprite
+        BufferedImage shadowSprite = new BufferedImage(
+            currentSprite.getWidth(),
+            currentSprite.getHeight(),
+            BufferedImage.TYPE_INT_ARGB
+        );
+        
+        // Make sprite semi-transparent and bluish
+        for (int x = 0; x < currentSprite.getWidth(); x++) {
+            for (int y = 0; y < currentSprite.getHeight(); y++) {
+                int rgb = currentSprite.getRGB(x, y);
+                if ((rgb >> 24) != 0) { // If pixel is not transparent
+                    // Add blue tint and make semi-transparent
+                    int alpha = 128; // 50% transparency
+                    int r = ((rgb >> 16) & 0xFF) / 2;
+                    int g = ((rgb >> 8) & 0xFF) / 2;
+                    int b = Math.min(255, ((rgb & 0xFF) + 50)); // Add blue tint
+                    shadowSprite.setRGB(x, y, (alpha << 24) | (r << 16) | (g << 8) | b);
+                }
+            }
+        }
+        return shadowSprite;
+    }
+
+    // Apply damage effect if active
     if (isDamaged) {
       long currentTime = System.currentTimeMillis();
       if (currentTime - damageEffectStartTime > DAMAGE_EFFECT_DURATION) {
