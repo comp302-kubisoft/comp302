@@ -62,7 +62,8 @@ public class GameState {
   private SoundManager soundManager;
 
   /**
-   * Represents an object placed in the game world. Contains both pixel coordinates and grid
+   * Represents an object placed in the game world. Contains both pixel
+   * coordinates and grid
    * positions for precise placement and collision detection.
    */
   public static class PlacedObject {
@@ -87,9 +88,9 @@ public class GameState {
     /**
      * Creates a new placed object with specified position and type.
      *
-     * @param type The type identifier of the object
-     * @param x Pixel X coordinate
-     * @param y Pixel Y coordinate
+     * @param type  The type identifier of the object
+     * @param x     Pixel X coordinate
+     * @param y     Pixel Y coordinate
      * @param gridX Grid X coordinate
      * @param gridY Grid Y coordinate
      */
@@ -108,7 +109,7 @@ public class GameState {
 
   /** Time remaining for current hall in milliseconds */
   private long timeRemaining;
-  
+
   /** Total time limit for the game in milliseconds */
   private long totalTimeLimit;
 
@@ -138,11 +139,10 @@ public class GameState {
   private final java.util.Map<Enchantment.Type, Integer> enchantmentInventory;
 
   /** Types of enchantments that can be stored */
-  private static final Set<Enchantment.Type> STORABLE_ENCHANTMENTS =
-      Set.of(
-          Enchantment.Type.REVEAL,
-          Enchantment.Type.CLOAK_OF_PROTECTION,
-          Enchantment.Type.LURING_GEM);
+  private static final Set<Enchantment.Type> STORABLE_ENCHANTMENTS = Set.of(
+      Enchantment.Type.REVEAL,
+      Enchantment.Type.CLOAK_OF_PROTECTION,
+      Enchantment.Type.LURING_GEM);
 
   private BufferedImage luringGemImage;
   private float gemThrowProgress = 0f; // 0 to 1, for throw animation
@@ -203,12 +203,13 @@ public class GameState {
       for (int y = GAME_AREA_START; y <= GAME_AREA_END; y++) {
         if (isPositionEmpty(x, y)) {
           emptyPositions.add(
-              new int[] {x * tileManager.getTileSize(), y * tileManager.getTileSize()});
+              new int[] { x * tileManager.getTileSize(), y * tileManager.getTileSize() });
         }
       }
     }
 
-    if (emptyPositions.isEmpty()) return null;
+    if (emptyPositions.isEmpty())
+      return null;
     return emptyPositions.get(random.nextInt(emptyPositions.size()));
   }
 
@@ -217,16 +218,19 @@ public class GameState {
     // Check for hero
     int heroGridX = hero.getX() / tileManager.getTileSize();
     int heroGridY = hero.getY() / tileManager.getTileSize();
-    if (heroGridX == gridX && heroGridY == gridY) return false;
+    if (heroGridX == gridX && heroGridY == gridY)
+      return false;
 
     // Check for placed objects
-    if (isTileOccupied(gridX, gridY)) return false;
+    if (isTileOccupied(gridX, gridY))
+      return false;
 
     // Check for monsters
     for (Monster monster : monsters) {
       int monsterGridX = monster.getX() / tileManager.getTileSize();
       int monsterGridY = monster.getY() / tileManager.getTileSize();
-      if (monsterGridX == gridX && monsterGridY == gridY) return false;
+      if (monsterGridX == gridX && monsterGridY == gridY)
+        return false;
     }
 
     // Check for wall tiles
@@ -247,7 +251,8 @@ public class GameState {
   }
 
   /**
-   * Updates monster states and handles their interactions with the hero. Should be called each game
+   * Updates monster states and handles their interactions with the hero. Should
+   * be called each game
    * update.
    */
   public void updateMonsters() {
@@ -272,10 +277,14 @@ public class GameState {
         }
       }
     }
+
+    // Remove monsters that are marked for removal
+    monsters.removeIf(Monster::shouldRemove);
   }
 
   /**
-   * Checks if a given grid position is within the valid game area. The game area is defined by
+   * Checks if a given grid position is within the valid game area. The game area
+   * is defined by
    * GAME_AREA_START and GAME_AREA_END constants.
    *
    * @param gridX X coordinate to check
@@ -290,7 +299,8 @@ public class GameState {
   }
 
   /**
-   * Checks if a tile at the given grid position is occupied by any placed object in the current
+   * Checks if a tile at the given grid position is occupied by any placed object
+   * in the current
    * hall.
    */
   public boolean isTileOccupied(int gridX, int gridY) {
@@ -303,7 +313,8 @@ public class GameState {
   }
 
   /**
-   * Attempts to add a new object to the current hall. The object will only be placed if the
+   * Attempts to add a new object to the current hall. The object will only be
+   * placed if the
    * position is within the game area and the target tile is not already occupied.
    */
   public void addPlacedObject(int type, int x, int y, int gridX, int gridY) {
@@ -365,7 +376,8 @@ public class GameState {
   }
 
   /**
-   * Assigns a rune to a random placed object in the current hall. Should be called when
+   * Assigns a rune to a random placed object in the current hall. Should be
+   * called when
    * transitioning from build to play mode.
    */
   public void assignRandomRune() {
@@ -386,11 +398,12 @@ public class GameState {
   }
 
   /**
-   * Checks if the hero is adjacent to a given grid position. Adjacent means the hero is in a tile
+   * Checks if the hero is adjacent to a given grid position. Adjacent means the
+   * hero is in a tile
    * directly left, right, up, or down.
    *
-   * @param gridX X coordinate to check
-   * @param gridY Y coordinate to check
+   * @param gridX    X coordinate to check
+   * @param gridY    Y coordinate to check
    * @param tileSize Size of each tile in pixels
    * @return true if hero is adjacent, false otherwise
    */
@@ -407,7 +420,8 @@ public class GameState {
   }
 
   /**
-   * Checks if the hero is on the transition tile. Only relevant if a rune has been found in the
+   * Checks if the hero is on the transition tile. Only relevant if a rune has
+   * been found in the
    * current hall.
    *
    * @return true if the hero is on the transition tile and a rune has been found
@@ -424,7 +438,8 @@ public class GameState {
   }
 
   /**
-   * Handles the transition to the next hall or victory. Should be called when the hero is on the
+   * Handles the transition to the next hall or victory. Should be called when the
+   * hero is on the
    * transition tile.
    *
    * @return true if this triggered a victory condition
@@ -464,7 +479,8 @@ public class GameState {
   }
 
   /**
-   * Checks if an object at the given position has a rune. Returns true and prints a message if a
+   * Checks if an object at the given position has a rune. Returns true and prints
+   * a message if a
    * rune is found.
    *
    * @param gridX X coordinate to check
@@ -503,7 +519,8 @@ public class GameState {
   }
 
   /**
-   * Moves to the next hall. Returns true if there are more halls, false if we've reached the end.
+   * Moves to the next hall. Returns true if there are more halls, false if we've
+   * reached the end.
    */
   public boolean moveToNextHall() {
     if (currentHall < TOTAL_HALLS - 1) {
@@ -530,14 +547,18 @@ public class GameState {
     return runesFound;
   }
 
-  /** Resets the number of runes found to zero. Called when resetting the game state. */
+  /**
+   * Resets the number of runes found to zero. Called when resetting the game
+   * state.
+   */
   public void resetRunesFound() {
     runesFound = 0;
     runeFoundInCurrentHall = false;
   }
 
   /**
-   * Updates the pause duration for all monsters. Should be called when the game is unpaused.
+   * Updates the pause duration for all monsters. Should be called when the game
+   * is unpaused.
    *
    * @param pauseDuration The duration to add to each monster's pause time
    */
@@ -553,7 +574,8 @@ public class GameState {
    * @return true if time has run out, false otherwise
    */
   public boolean updateTimer() {
-    if (!timerActive) return false;
+    if (!timerActive)
+      return false;
 
     long currentTime = System.currentTimeMillis();
     long delta = currentTime - lastUpdateTime;
@@ -605,6 +627,7 @@ public class GameState {
       long timeLimit = objectCount * 5L * 1000; // Convert to milliseconds
       hallTimeLimits[hall] = timeLimit;
       if (hall == currentHall) {
+        totalTimeLimit = timeLimit;
         timeRemaining = timeLimit;
       }
     }
@@ -623,7 +646,8 @@ public class GameState {
   }
 
   /**
-   * Updates enchantment states, spawning new ones and removing expired ones. Should be called each
+   * Updates enchantment states, spawning new ones and removing expired ones.
+   * Should be called each
    * game update.
    */
   public void updateEnchantments() {
@@ -645,7 +669,8 @@ public class GameState {
   private void spawnRandomEnchantment() {
     // Get a random empty position
     int[] position = findRandomEmptyPosition();
-    if (position == null) return;
+    if (position == null)
+      return;
 
     // Choose a random enchantment type
     Enchantment.Type[] types = Enchantment.Type.values();
@@ -683,7 +708,8 @@ public class GameState {
   }
 
   /**
-   * Called when the game is unpaused. Updates pause duration for all time-sensitive entities.
+   * Called when the game is unpaused. Updates pause duration for all
+   * time-sensitive entities.
    *
    * @param pauseDuration The duration of the pause in milliseconds
    */
@@ -709,7 +735,8 @@ public class GameState {
   }
 
   /**
-   * Resets the enchantment spawn timer. Called when transitioning between halls or starting the
+   * Resets the enchantment spawn timer. Called when transitioning between halls
+   * or starting the
    * game.
    */
   public void resetEnchantmentSpawnTimer() {
@@ -719,7 +746,8 @@ public class GameState {
   }
 
   /**
-   * Handles the collection of an enchantment. Immediate effect enchantments are applied directly,
+   * Handles the collection of an enchantment. Immediate effect enchantments are
+   * applied directly,
    * while storable enchantments are added to inventory.
    *
    * @param enchantment The enchantment that was collected
@@ -757,7 +785,10 @@ public class GameState {
     }
   }
 
-  /** Adds a reveal effect to the game. Should be called when a reveal enchantment is used. */
+  /**
+   * Adds a reveal effect to the game. Should be called when a reveal enchantment
+   * is used.
+   */
   public void useRevealEnchantment() {
     // Check if we have a reveal enchantment in inventory
     if (enchantmentInventory.getOrDefault(Enchantment.Type.REVEAL, 0) > 0) {
@@ -799,7 +830,8 @@ public class GameState {
   }
 
   /**
-   * Gets the starting X coordinate of the reveal area. Should be called during game updates.
+   * Gets the starting X coordinate of the reveal area. Should be called during
+   * game updates.
    *
    * @return The starting X coordinate of the reveal area
    */
@@ -808,7 +840,8 @@ public class GameState {
   }
 
   /**
-   * Gets the starting Y coordinate of the reveal area. Should be called during game updates.
+   * Gets the starting Y coordinate of the reveal area. Should be called during
+   * game updates.
    *
    * @return The starting Y coordinate of the reveal area
    */
@@ -835,7 +868,10 @@ public class GameState {
     }
   }
 
-  /** Adds a cloak effect to the game. Should be called when a cloak enchantment is used. */
+  /**
+   * Adds a cloak effect to the game. Should be called when a cloak enchantment is
+   * used.
+   */
   public void useCloakEnchantment() {
     // Check if we have a cloak enchantment in inventory
     if (enchantmentInventory.getOrDefault(Enchantment.Type.CLOAK_OF_PROTECTION, 0) > 0) {
@@ -885,7 +921,8 @@ public class GameState {
    * @return Remaining time in milliseconds, or 0 if not active
    */
   public long getCloakRemainingTime() {
-    if (!cloakEffectActive) return 0;
+    if (!cloakEffectActive)
+      return 0;
     long currentTime = System.currentTimeMillis() - pauseDuration;
     long remainingTime = CLOAK_EFFECT_DURATION - (currentTime - cloakEffectStartTime);
     return Math.max(0, remainingTime);
@@ -893,7 +930,8 @@ public class GameState {
 
   /** Gets the progress of the reveal effect from 0.0 (start) to 1.0 (end) */
   public float getRevealProgress() {
-    if (!revealEffectActive) return 1.0f;
+    if (!revealEffectActive)
+      return 1.0f;
     long currentTime = System.currentTimeMillis() - pauseDuration;
     float progress = (float) (currentTime - revealEffectStartTime) / REVEAL_EFFECT_DURATION;
     return Math.min(1.0f, Math.max(0.0f, progress));
@@ -937,10 +975,10 @@ public class GameState {
 
       // Adjust for boundaries and objects
       while ((targetX < GAME_AREA_START
-              || targetX > GAME_AREA_END
-              || targetY < GAME_AREA_START
-              || targetY > GAME_AREA_END
-              || isTileOccupied(targetX, targetY))
+          || targetX > GAME_AREA_END
+          || targetY < GAME_AREA_START
+          || targetY > GAME_AREA_END
+          || isTileOccupied(targetX, targetY))
           && (targetX != startX || targetY != startY)) {
 
         switch (direction) {
@@ -985,7 +1023,8 @@ public class GameState {
       // Update throw animation
       if (gemThrowProgress < 1.0f) {
         gemThrowProgress += GEM_THROW_SPEED;
-        if (gemThrowProgress > 1.0f) gemThrowProgress = 1.0f;
+        if (gemThrowProgress > 1.0f)
+          gemThrowProgress = 1.0f;
       }
 
       // Check duration
@@ -1023,7 +1062,8 @@ public class GameState {
   private static final long GEM_FADE_DURATION = 2000; // Last 2 seconds fade out
 
   public float getGemFadeAlpha() {
-    if (!luringGemActive) return 0f;
+    if (!luringGemActive)
+      return 0f;
     long currentTime = System.currentTimeMillis() - pauseDuration;
     long timeLeft = (gemStartTime + GEM_EFFECT_DURATION) - currentTime;
 
