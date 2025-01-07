@@ -26,7 +26,7 @@ public class Monster extends Entity {
   private long lastDirectionChange;
   private Random random = new Random();
   private GameState gameState;
-  private static final String[] DIRECTIONS = {"up", "down", "left", "right"};
+  private static final String[] DIRECTIONS = { "up", "down", "left", "right" };
   private ui.sound.SoundManager soundManager;
   private static final long WIZARD_TELEPORT_INTERVAL = 5000; // 5 seconds
   private long lastTeleportTime = 0;
@@ -35,6 +35,8 @@ public class Monster extends Entity {
   private long pauseDuration = 0; // Track total pause duration
   private TileManager tileManager;
   private int tileSize;
+  private WizardStrategy wizardStrategy;
+  private boolean shouldRemove = false;
 
   public Monster(Type type, int x, int y) {
     this.monsterType = type;
@@ -53,12 +55,11 @@ public class Monster extends Entity {
 
   private void loadImage() {
     try {
-      String imagePath =
-          switch (monsterType) {
-            case FIGHTER -> "/monsters/fighter.png";
-            case WIZARD -> "/monsters/wizard.png";
-            case ARCHER -> "/monsters/archer.png";
-          };
+      String imagePath = switch (monsterType) {
+        case FIGHTER -> "/monsters/fighter.png";
+        case WIZARD -> "/monsters/wizard.png";
+        case ARCHER -> "/monsters/archer.png";
+      };
       image = ImageIO.read(getClass().getResourceAsStream(imagePath));
     } catch (IOException e) {
       e.printStackTrace();
@@ -68,8 +69,7 @@ public class Monster extends Entity {
   public BufferedImage getImage() {
     if (monsterType == Type.WIZARD && isCastingSpell) {
       // Create a glowing effect by brightening the image
-      BufferedImage glowingImage =
-          new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+      BufferedImage glowingImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
       for (int x = 0; x < image.getWidth(); x++) {
         for (int y = 0; y < image.getHeight(); y++) {
           int rgb = image.getRGB(x, y);
@@ -96,6 +96,46 @@ public class Monster extends Entity {
   }
 
   /**
+   * Chooses and initializes the wizard's strategy based on the game time
+   * remaining.
+   * If 'previousStrategy' is different from the newly chosen strategy, we call
+   * init().
+   *
+   * This can be called every update to handle dynamic adaptation.
+   */
+  private void chooseAndInitStrategy(WizardStrategy previousStrategy) {
+    // If not a wizard, do nothing
+    if (monsterType != Type.WIZARD || gameState == null)
+      return;
+
+    double remainingTime = gameState.getTimeRemaining();
+    double totalTime = gameState.getTotalTimeLimit(); 
+    double remainingPercent = (totalTime > 0) ? (remainingTime / totalTime) * 100.0 : 0.0;
+
+    WizardStrategy newStrategy;
+    if (remainingPercent < 30.0) {
+      newStrategy = new BadSituationWizardStrategy();
+    } else if (remainingPercent > 70.0) {
+      newStrategy = new GoodSituationWizardStrategy();
+    } else {
+      newStrategy = new IndecisiveWizardStrategy();
+    }
+
+    // Only re-init if we switch to a different strategy
+    if (wizardStrategy == null || !wizardStrategy.getClass().equals(newStrategy.getClass())) {
+      wizardStrategy = newStrategy;
+      wizardStrategy.init(this, gameState);
+    }
+  }
+
+  /**
+   * Returns the current in-game time adjusted for pauses.
+   */
+  public long getAdjustedTime() {
+    return System.currentTimeMillis() - pauseDuration;
+  }
+
+  /**
    * Updates the pause duration when game is paused/unpaused.
    *
    * @param pauseTime The duration to add to total pause time
@@ -105,24 +145,29 @@ public class Monster extends Entity {
   }
 
   /**
-   * Gets the current time adjusted for pause duration.
-   *
-   * @return Current time minus total pause duration
-   */
-  private long getAdjustedTime() {
-    return System.currentTimeMillis() - pauseDuration;
-  }
-
-  /**
-   * Updates the monster's position and behavior based on its type. Fighter monsters move randomly,
+   * Updates the monster's position and behavior based on its type. Fighter
+   * monsters move randomly,
    * changing direction periodically. Wizard monsters teleport runes periodically.
    *
    * @param tileManager Reference to the tile manager for collision checking
-   * @param tileSize Size of each tile in pixels
+   * @param tileSize    Size of each tile in pixels
    */
   public void update(TileManager tileManager, int tileSize) {
     this.tileManager = tileManager;
     this.tileSize = tileSize;
+
+    if (monsterType == Type.WIZARD) {
+      // Decide which strategy to use right now, possibly switching from a prior
+      // strategy
+      WizardStrategy oldStrategy = this.wizardStrategy;
+      chooseAndInitStrategy(oldStrategy);
+
+      // Now delegate to the chosen strategy's update method
+      if (wizardStrategy != null) {
+        wizardStrategy.update(this, gameState);
+      }
+      return;
+    }
 
     if (monsterType == Type.ARCHER && canAttack()) {
       Hero hero = gameState.getHero();
@@ -181,7 +226,8 @@ public class Monster extends Entity {
   }
 
   /**
-   * Attempts to move the monster by the specified amount. Checks for collisions before allowing
+   * Attempts to move the monster by the specified amount. Checks for collisions
+   * before allowing
    * movement.
    */
   private void moveIfPossible(int dx, int dy, TileManager tileManager, int tileSize) {
@@ -292,38 +338,39 @@ public class Monster extends Entity {
   }
 
   /** Teleports the rune to a random object in the current hall. */
-  private void teleportRune() {
-    if (gameState == null) return;
+  public void teleportRune() {
+    if (gameState == null)
+      return;
 
     List<GameState.PlacedObject> objects = gameState.getPlacedObjects();
-    if (objects.isEmpty()) return;
+    if (objects.isEmpty())
+      return;
 
     // Start spell casting effect
     isCastingSpell = true;
     new Thread(
-            () -> {
-              try {
-                Thread.sleep(SPELL_EFFECT_DURATION);
-                isCastingSpell = false;
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
-            })
+        () -> {
+          try {
+            Thread.sleep(SPELL_EFFECT_DURATION);
+            isCastingSpell = false;
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        })
         .start();
 
     // Find current rune holder
-    final GameState.PlacedObject currentRuneHolder =
-        objects.stream().filter(obj -> obj.hasRune).findFirst().orElse(null);
+    final GameState.PlacedObject currentRuneHolder = objects.stream().filter(obj -> obj.hasRune).findFirst()
+        .orElse(null);
 
     if (currentRuneHolder != null) {
       // Remove rune from current holder
       currentRuneHolder.hasRune = false;
 
       // Select a random object (excluding the current holder)
-      List<GameState.PlacedObject> availableObjects =
-          objects.stream()
-              .filter(obj -> obj != currentRuneHolder)
-              .collect(java.util.stream.Collectors.toList());
+      List<GameState.PlacedObject> availableObjects = objects.stream()
+          .filter(obj -> obj != currentRuneHolder)
+          .collect(java.util.stream.Collectors.toList());
 
       if (!availableObjects.isEmpty()) {
         // Give rune to random object
@@ -346,11 +393,15 @@ public class Monster extends Entity {
       // Calculate direction to gem
       int dx = 0, dy = 0;
 
-      if (x < gemX) dx = speed;
-      else if (x > gemX) dx = -speed;
+      if (x < gemX)
+        dx = speed;
+      else if (x > gemX)
+        dx = -speed;
 
-      if (y < gemY) dy = speed;
-      else if (y > gemY) dy = -speed;
+      if (y < gemY)
+        dy = speed;
+      else if (y > gemY)
+        dy = -speed;
 
       // Try to move towards gem
       if (dx != 0) {
@@ -364,5 +415,13 @@ public class Monster extends Entity {
         }
       }
     }
+  }
+
+  public boolean shouldRemove() {
+    return shouldRemove;
+  }
+
+  public void markForRemoval() {
+    shouldRemove = true;
   }
 }

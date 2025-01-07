@@ -45,9 +45,9 @@ public class GameController {
   /**
    * Initializes the game controller with necessary references and initial state.
    *
-   * @param gameState The game state to control
+   * @param gameState  The game state to control
    * @param inputState The input state to monitor
-   * @param gamePanel The main game panel reference
+   * @param gamePanel  The main game panel reference
    */
   public GameController(GameState gameState, InputState inputState, GamePanel gamePanel) {
     this.gameState = gameState;
@@ -59,7 +59,8 @@ public class GameController {
   }
 
   /**
-   * Updates the menu, help, and game over modes based on user input. Handles mode transitions and
+   * Updates the menu, help, and game over modes based on user input. Handles mode
+   * transitions and
    * input processing for menu navigation.
    */
   public void updateMenuOrHelpMode() {
@@ -92,7 +93,8 @@ public class GameController {
   }
 
   /**
-   * Updates the build mode state. Handles object placement, mode transitions, and build mode
+   * Updates the build mode state. Handles object placement, mode transitions, and
+   * build mode
    * specific logic.
    */
   public void updateBuildMode() {
@@ -191,7 +193,8 @@ public class GameController {
   }
 
   /**
-   * Updates the play mode state. Handles hero movement, spawn position, monster spawning, and game
+   * Updates the play mode state. Handles hero movement, spawn position, monster
+   * spawning, and game
    * interactions during gameplay.
    */
   public void updatePlayMode() {
@@ -310,13 +313,15 @@ public class GameController {
   }
 
   /**
-   * Spawns a random monster at a random empty location. Only spawns if we haven't reached the
+   * Spawns a random monster at a random empty location. Only spawns if we haven't
+   * reached the
    * maximum monster limit.
    */
   private void spawnRandomMonster() {
     // Get a random empty position
     int[] position = gameState.findRandomEmptyPosition();
-    if (position == null) return; // No empty positions available
+    if (position == null)
+      return; // No empty positions available
 
     // Choose a random monster type
     Monster.Type[] monsterTypes = Monster.Type.values();
@@ -340,10 +345,11 @@ public class GameController {
   }
 
   /**
-   * Main update method that handles all game state updates based on the current mode.
+   * Main update method that handles all game state updates based on the current
+   * mode.
    *
    * @param currentMode The current game mode
-   * @param isPaused Whether the game is currently paused
+   * @param isPaused    Whether the game is currently paused
    */
   public void update(GameMode currentMode, boolean isPaused) {
     switch (currentMode) {
