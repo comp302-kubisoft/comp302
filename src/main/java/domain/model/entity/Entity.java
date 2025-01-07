@@ -1,7 +1,6 @@
 /**
- * Base class for all game entities.
- * Provides common functionality for position, movement, and direction handling.
- * Serves as the parent class for more specific entity types like Hero.
+ * Base class for all game entities. Provides common functionality for position, movement, and
+ * direction handling. Serves as the parent class for more specific entity types like Hero.
  */
 package domain.model.entity;
 
@@ -11,18 +10,22 @@ public class Entity {
 
   /** X coordinate in pixels */
   protected int x;
+
   /** Y coordinate in pixels */
   protected int y;
+
   /** Movement speed in pixels per update */
   protected int speed;
+
   /** Entity's sprite image */
   public BufferedImage left1, left2, right1, right2, up1, up2, down1, down2;
+
   /** Current facing direction ("up", "down", "left", "right") */
   protected String direction;
 
   /**
    * Gets the entity's current X coordinate.
-   * 
+   *
    * @return X position in pixels
    */
   public int getX() {
@@ -31,7 +34,7 @@ public class Entity {
 
   /**
    * Gets the entity's current Y coordinate.
-   * 
+   *
    * @return Y position in pixels
    */
   public int getY() {
@@ -40,7 +43,7 @@ public class Entity {
 
   /**
    * Gets the entity's movement speed.
-   * 
+   *
    * @return Speed in pixels per update
    */
   public int getSpeed() {
@@ -49,7 +52,7 @@ public class Entity {
 
   /**
    * Gets the entity's current facing direction.
-   * 
+   *
    * @return Direction string ("up", "down", "left", "right")
    */
   public String getDirection() {
@@ -58,7 +61,7 @@ public class Entity {
 
   /**
    * Sets the entity's facing direction.
-   * 
+   *
    * @param dir New direction to face ("up", "down", "left", "right")
    */
   public void setDirection(String dir) {
@@ -67,7 +70,7 @@ public class Entity {
 
   /**
    * Sets the entity's position.
-   * 
+   *
    * @param x New X coordinate in pixels
    * @param y New Y coordinate in pixels
    */
@@ -78,7 +81,7 @@ public class Entity {
 
   /**
    * Sets the entity's X coordinate.
-   * 
+   *
    * @param x New X coordinate in pixels
    */
   public void setX(int x) {
@@ -87,7 +90,7 @@ public class Entity {
 
   /**
    * Sets the entity's Y coordinate.
-   * 
+   *
    * @param y New Y coordinate in pixels
    */
   public void setY(int y) {
@@ -96,7 +99,7 @@ public class Entity {
 
   /**
    * Sets the entity's movement speed.
-   * 
+   *
    * @param speed New speed in pixels per update
    */
   public void setSpeed(int speed) {

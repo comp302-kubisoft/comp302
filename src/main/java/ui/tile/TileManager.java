@@ -1,7 +1,6 @@
 /**
- * Manages the game's tile-based map system.
- * Handles loading, storing, and rendering of the game world's tiles.
- * Provides collision detection functionality for game entities.
+ * Manages the game's tile-based map system. Handles loading, storing, and rendering of the game
+ * world's tiles. Provides collision detection functionality for game entities.
  */
 package ui.tile;
 
@@ -14,20 +13,24 @@ public class TileManager {
 
   /** Size of each tile in pixels */
   private int tileSize;
+
   /** Number of columns in the map */
   private int maxScreenCol;
+
   /** Number of rows in the map */
   private int maxScreenRow;
+
   /** Array of available tile types */
   public Tile[] tile;
+
   /** 2D array representing the map layout */
   public int[][] mapTileNum;
 
   /**
-   * Creates a new TileManager with specified dimensions.
-   * Initializes tiles and loads the default map.
-   * 
-   * @param tileSize     Size of each tile in pixels
+   * Creates a new TileManager with specified dimensions. Initializes tiles and loads the default
+   * map.
+   *
+   * @param tileSize Size of each tile in pixels
    * @param maxScreenCol Number of columns in the map
    * @param maxScreenRow Number of rows in the map
    */
@@ -42,8 +45,8 @@ public class TileManager {
   }
 
   /**
-   * Loads tile images and sets their collision properties.
-   * Initializes different types of tiles used in the game.
+   * Loads tile images and sets their collision properties. Initializes different types of tiles
+   * used in the game.
    */
   public void getTileImage() {
     try {
@@ -58,12 +61,12 @@ public class TileManager {
   }
 
   /**
-   * Checks if a given position would result in a collision with solid tiles.
-   * Used for entity movement validation.
-   * 
-   * @param x      X coordinate to check
-   * @param y      Y coordinate to check
-   * @param width  Width of the entity
+   * Checks if a given position would result in a collision with solid tiles. Used for entity
+   * movement validation.
+   *
+   * @param x X coordinate to check
+   * @param y Y coordinate to check
+   * @param width Width of the entity
    * @param height Height of the entity
    * @return true if collision would occur, false otherwise
    */
@@ -86,9 +89,8 @@ public class TileManager {
   }
 
   /**
-   * Loads a map from a text file.
-   * Map file should contain space-separated tile indices.
-   * 
+   * Loads a map from a text file. Map file should contain space-separated tile indices.
+   *
    * @param filePath Path to the map file in resources
    */
   public void loadMap(String filePath) {
@@ -120,9 +122,8 @@ public class TileManager {
   }
 
   /**
-   * Renders the tile map to the screen.
-   * Draws each tile based on the map layout.
-   * 
+   * Renders the tile map to the screen. Draws each tile based on the map layout.
+   *
    * @param g2 Graphics context to draw with
    */
   public void draw(Graphics2D g2) {
@@ -148,7 +149,7 @@ public class TileManager {
 
   /**
    * Gets the size of each tile in pixels.
-   * 
+   *
    * @return The tile size
    */
   public int getTileSize() {
