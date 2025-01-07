@@ -108,6 +108,13 @@ public class GameState {
 
   /** Time remaining for current hall in milliseconds */
   private long timeRemaining;
+  
+  /** Total time limit for the game in milliseconds */
+  private long totalTimeLimit;
+
+  public long getTotalTimeLimit() {
+    return totalTimeLimit;
+  }
 
   /** Last time update timestamp */
   private long lastUpdateTime;
