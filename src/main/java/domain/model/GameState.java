@@ -564,9 +564,7 @@ public class GameState {
 
   /** Sets the current hall number (0-3). */
   public void setCurrentHall(int hall) {
-    if (hall >= 0 && hall < TOTAL_HALLS) {
-      this.currentHall = hall;
-    }
+    this.currentHall = hall;
   }
 
   /** Gets the number of runes found so far. */
