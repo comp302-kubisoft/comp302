@@ -337,7 +337,22 @@ public class Monster extends Entity {
     return monsterType == Type.ARCHER ? ARCHER_ATTACK_RANGE : 0;
   }
 
-  /** Teleports the rune to a random object in the current hall. */
+  /**
+   * Teleports the rune to a random placed object within the current hall.
+   * 
+   * Requires: 
+   * - The game state (`gameState`) must not be null.
+   * - There must be at least one placed object in the current hall.
+   * 
+   * Modifies: 
+   * - The `hasRune` property of placed objects in the current hall.
+   * 
+   * Effects:
+   * - Transfers the rune from its current holder to a randomly selected
+   *   placed object in the current hall, excluding the current holder.
+   * - If no other placed object exists, the rune remains with its current holder.
+   * - Plays a teleport sound effect if successful.
+   */
   public void teleportRune() {
     if (gameState == null)
       return;
