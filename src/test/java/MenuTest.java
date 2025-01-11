@@ -16,12 +16,14 @@ public class MenuTest {
     }
 
     @Test
-    void testPressDownThenEnterShouldSelectHelp() {
+    void testPressDownThenEnterShouldSelectHelp() throws InterruptedException {
         // selectedOption starts at 0 => "Start Game"
         // Press down once => selectedOption should become 1 => "Help"
         GameMode result = menu.handleInput(false, true, false);
         // No enter pressed yet, so still in MENU
         assertEquals(GameMode.MENU, result);
+
+        Thread.sleep(200);
 
         // Press enter => Should pick "Help"
         result = menu.handleInput(false, false, true);
@@ -43,14 +45,20 @@ public class MenuTest {
     }
 
     @Test
-    void testPressDownTwiceStartGameNoInputDelay() {
+    void testPressDownTwiceStartGameNoInputDelay() throws InterruptedException {
         // first down => selectedOption=1 ("Help")
         menu.handleInput(false, true, false);
+
+        Thread.sleep(200);
+
         // second down => selectedOption=2 ("Exit")
         menu.handleInput(false, true, false);
 
+        Thread.sleep(200);
         // Press down the third time => wrap to selectedOption=0 ("Start Game")
         menu.handleInput(false, true, false);
+
+        Thread.sleep(200);
 
         // Press enter => Should pick "Start Game" => GameMode.BUILD
         GameMode result = menu.handleInput(false, false, true);
