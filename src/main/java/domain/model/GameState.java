@@ -1,7 +1,33 @@
 /**
- * Represents the core game state and manages all game entities and objects. This class serves as
- * the central model maintaining the current state of the game, including the hero, placed objects,
- * and game area boundaries.
+ * Overview: This class represents the core model of the game. It keeps track of the hero, monsters,
+ * placed objects in each hall, the current hall index, as well as game-related flags (e.g., luring
+ * gems, runes found). Essentially, it encapsulates all essential data and coordinates about the
+ * game world.
+ *
+ * Abstract Function:
+ * Let H = the hero entity
+ * Let M = the set of all monsters
+ * Let O = the lists of placed objects by hall (each hall has a sub-list)
+ * Let currentHall = an integer denoting which hall is currently active
+ * Let runesFound = how many runes have been discovered so far
+ * ... (and so on for other relevant fields)
+ *
+ * AF(GameState) = A conceptual mapping to:
+ * (
+ *   hero = H,
+ *   monsters = M,
+ *   hallObjects = O,
+ *   currentHall = currentHall,
+ *   runesFound = runesFound,
+ *   ...
+ * )
+ * 
+ * Representation Invariant:
+ * - 0 ≤ currentHall < TOTAL_HALLS
+ * - hallObjects has length = TOTAL_HALLS
+ * - runesFound ≥ 0 and runesFound ≤ TOTAL_HALLS
+ * - No two objects in the same hall occupy the exact same grid position
+ *
  */
 package domain.model;
 
@@ -12,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -537,9 +564,7 @@ public class GameState {
 
   /** Sets the current hall number (0-3). */
   public void setCurrentHall(int hall) {
-    if (hall >= 0 && hall < TOTAL_HALLS) {
-      this.currentHall = hall;
-    }
+    this.currentHall = hall;
   }
 
   /** Gets the number of runes found so far. */
@@ -1071,5 +1096,49 @@ public class GameState {
       return Math.max(0f, timeLeft / (float) GEM_FADE_DURATION);
     }
     return 1.0f;
+  }
+
+  public boolean repOk() {
+    // 1. currentHall in valid range
+    if (currentHall < 0 || currentHall >= TOTAL_HALLS) {
+      return false;
+    }
+
+    // 2. hallObjects size check
+    if (hallObjects.size() != TOTAL_HALLS) {
+      return false;
+    }
+    for (List<PlacedObject> objectsInHall : hallObjects) {
+      if (objectsInHall == null) {
+        return false;
+      }
+      // 4. check for duplicate grid positions within the same hall
+      Set<String> seenGridPositions = new HashSet<>();
+      for (PlacedObject obj : objectsInHall) {
+        String pos = obj.gridX + "," + obj.gridY;
+        if (!seenGridPositions.add(pos)) {
+          // Duplicate position
+          return false;
+        }
+      }
+    }
+
+    // 3. runesFound in valid range
+    if (runesFound < 0 || runesFound > TOTAL_HALLS) {
+      return false;
+    }
+
+    // 5. Basic monster list checks
+    if (monsters == null) {
+      return false;
+    }
+    for (Monster m : monsters) {
+      if (m == null) {
+        return false;
+      }
+    }
+
+    // If we got here, the rep is OK.
+    return true;
   }
 }
