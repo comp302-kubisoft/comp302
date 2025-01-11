@@ -17,7 +17,7 @@ public class Menu {
   private int selectedOption = 0;
 
   /** Available menu options */
-  private final String[] options = {"Start Game", "Help", "Exit"};
+  private final String[] options = { "Start Game", "Help", "Exit" };
 
   /** Time of last input processing */
   private long lastInputTime = 0;
@@ -52,11 +52,12 @@ public class Menu {
   }
 
   /**
-   * Draws the menu interface. Renders the wooden panel background, title, options, and control
+   * Draws the menu interface. Renders the wooden panel background, title,
+   * options, and control
    * hints.
    *
-   * @param g2 Graphics context to draw with
-   * @param screenWidth Width of the game screen
+   * @param g2           Graphics context to draw with
+   * @param screenWidth  Width of the game screen
    * @param screenHeight Height of the game screen
    */
   public void draw(Graphics2D g2, int screenWidth, int screenHeight) {
@@ -72,8 +73,8 @@ public class Menu {
   /**
    * Draws the wooden panel background with gradient and planks.
    *
-   * @param g2 Graphics context to draw with
-   * @param screenWidth Width of the game screen
+   * @param g2           Graphics context to draw with
+   * @param screenWidth  Width of the game screen
    * @param screenHeight Height of the game screen
    */
   private void drawWoodenPanel(Graphics2D g2, int screenWidth, int screenHeight) {
@@ -81,9 +82,8 @@ public class Menu {
     int panelWidth = screenWidth - 2 * margin;
     int panelHeight = screenHeight - 2 * margin;
 
-    GradientPaint woodGradient =
-        new GradientPaint(
-            margin, margin, WOOD_DARK, margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
+    GradientPaint woodGradient = new GradientPaint(
+        margin, margin, WOOD_DARK, margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
     g2.setPaint(woodGradient);
     g2.fillRect(margin, margin, panelWidth, panelHeight);
 
@@ -101,8 +101,8 @@ public class Menu {
   /**
    * Draws the menu title with shadow effect.
    *
-   * @param g2 Graphics context to draw with
-   * @param screenWidth Width of the game screen
+   * @param g2           Graphics context to draw with
+   * @param screenWidth  Width of the game screen
    * @param screenHeight Height of the game screen
    */
   private void drawTitle(Graphics2D g2, int screenWidth, int screenHeight) {
@@ -119,8 +119,8 @@ public class Menu {
   /**
    * Draws the menu options with selection highlighting.
    *
-   * @param g2 Graphics context to draw with
-   * @param screenWidth Width of the game screen
+   * @param g2           Graphics context to draw with
+   * @param screenWidth  Width of the game screen
    * @param screenHeight Height of the game screen
    */
   private void drawOptions(Graphics2D g2, int screenWidth, int screenHeight) {
@@ -144,8 +144,8 @@ public class Menu {
   /**
    * Draws the controls hint box at the bottom of the menu.
    *
-   * @param g2 Graphics context to draw with
-   * @param screenWidth Width of the game screen
+   * @param g2           Graphics context to draw with
+   * @param screenWidth  Width of the game screen
    * @param screenHeight Height of the game screen
    */
   private void drawControlsHint(Graphics2D g2, int screenWidth, int screenHeight) {
@@ -172,13 +172,24 @@ public class Menu {
   }
 
   /**
-   * Handles user input for menu navigation. Processes up/down movement and option selection.
-   * Includes input delay to prevent too rapid selection.
-   *
-   * @param upPressed Whether the up key is pressed
-   * @param downPressed Whether the down key is pressed
-   * @param enterPressed Whether the enter key is pressed
-   * @return The selected GameMode, or MENU if no selection made
+   * Requires:
+   * - upPressed, downPressed, enterPressed accurately reflect key press states at
+   * the time of call.
+   * 
+   * Modifies:
+   * - this.selectedOption (the currently highlighted menu option).
+   * 
+   * Effects:
+   * 1. If upPressed is true and enough time has passed since last input:
+   * - Decrement selectedOption (wrap around if needed) and play a cursor sound.
+   * 2. If downPressed is true and enough time has passed since last input:
+   * - Increment selectedOption (wrap around if needed) and play a cursor sound.
+   * 3. If enterPressed is true and enough time has passed since last input:
+   * - If currently selectedOption == 0 => Return GameMode.BUILD (start game)
+   * - If selectedOption == 1 => Return GameMode.HELP
+   * - If selectedOption == 2 => Call System.exit(0)
+   * 4. If no option is selected by enterPress or if input is within delay, return
+   * GameMode.MENU.
    */
   public GameMode handleInput(boolean upPressed, boolean downPressed, boolean enterPressed) {
     long currentTime = System.currentTimeMillis();
