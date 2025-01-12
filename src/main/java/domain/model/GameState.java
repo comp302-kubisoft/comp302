@@ -977,6 +977,31 @@ public class GameState {
     }
   }
 
+  /**
+   * Throws a luring gem in the specified direction from the hero's current position.
+   * The gem acts as a distraction that attracts monsters to its location for a limited time.
+   * The gem will travel a fixed distance (GEM_THROW_DISTANCE) in the specified direction,
+   * staying within game boundaries.
+   *
+   * Requires:
+   * - direction must be one of: "up", "down", "left", "right"
+   * - hero must exist in the game state
+   * - player must have at least one luring gem in inventory to throw
+   *
+   * Modifies:
+   * - enchantmentInventory (reduces luring gem count)
+   * - gem position (gemX, gemY)
+   * - gem state (luringGemActive, gemStartTime)
+   *
+   * Effects:
+   * - If player has a luring gem:
+   *   > Calculates target position GEM_THROW_DISTANCE tiles away
+   *   > Ensures position stays within game boundaries
+   *   > Activates the gem effect
+   *   > Removes one gem from inventory
+   * - If no gem in inventory:
+   *   > No changes occur
+   */
   public void throwLuringGem(String direction) {
     if (enchantmentInventory.getOrDefault(Enchantment.Type.LURING_GEM, 0) > 0) {
       // Get hero's position as starting point
