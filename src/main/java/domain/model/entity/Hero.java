@@ -149,16 +149,25 @@ public class Hero extends Entity {
     }
   }
 
-  /**
-   * Checks if a proposed position would result in a collision. Considers wall tiles, placed
-   * objects, and monsters.
-   *
-   * @param newX Proposed x position
-   * @param newY Proposed y position
-   * @param tileManager Reference to the tile manager
-   * @param tileSize Size of each tile in pixels
-   * @return true if there would be a collision, false if position is valid
-   */
+/**
+ * Requires:
+ * - newX and newY are valid pixel coordinates within the game map bounds.
+ * - tileManager is a properly initialized instance of TileManager.
+ * - tileSize is a positive integer representing the size of a tile in pixels.
+ * - gameState is a valid instance containing placed objects and monsters.
+ * 
+ * Modifies:
+ * - None.
+ * 
+ * Effects:
+ * - Calculates a collision box based on the provided newX, newY coordinates.
+ * - Checks for collisions with:
+ *   1. Wall tiles in the game map using tileManager.
+ *   2. Placed objects from the gameState within the collision box area.
+ *   3. Monsters from the gameState within the collision box area.
+ * - Returns true if any collision is detected with a wall, placed object, or monster.
+ * - Returns false if the path is clear of all obstacles.
+ */
   private boolean checkCollision(int newX, int newY, TileManager tileManager, int tileSize) {
     // Calculate collision box dimensions
     int boxWidth = (int) (tileSize * COLLISION_BOX_WIDTH); // 8 pixels
