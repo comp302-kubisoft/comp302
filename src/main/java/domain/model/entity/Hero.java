@@ -112,6 +112,27 @@ public class Hero extends Entity {
       }
     }
   }
+  /** 
+   * Requires:
+   * - dx and dy are valid movement deltas (typically between -speed and +speed)
+   * - tileManager is properly initialized with valid tile mappings
+   * - tileSize is positive and matches the game's tile dimensions
+   * - hero's current position (x,y) is within valid map bounds
+   * 
+   * Modifies:
+   * - hero's x and y coordinates
+   * - hero's direction
+   * - hero's animation state (spriteCounter and spriteNum)
+   * 
+   * Effects:
+   * - Updates hero's movement direction based on dx/dy
+   * - If movement is collision-free:
+   *   - Updates hero's position by dx and dy
+   *   - Updates animation state if moving
+   * - If collision would occur:
+   *   - Maintains current position
+   *   - Still updates direction and animation
+   */
 
   /**
    * Attempts to move the hero by the specified amount. Checks for collisions before allowing
