@@ -513,6 +513,22 @@ public class GameState {
    * @param gridX X coordinate to check
    * @param gridY Y coordinate to check
    * @return true if a rune was found, false otherwise
+   * 
+   * Requires:
+   * - gridX and gridY must be valid grid coordinates within the game area
+   * - currentHall must be initialized and valid (0 to TOTAL_HALLS-1)
+   * - hallObjects must be initialized for the current hall
+   * 
+   * Modifies:
+   * - runesFound (increments if rune is found)
+   * - runeFoundInCurrentHall (set to true if rune is found)
+   * - tileManager.mapTileNum[9][18] (changes to 3 if rune is found)
+   * 
+   * Effects:
+   * - Returns true if a rune is found at the specified position
+   * - Returns false if no rune is found or no object exists at position
+   * - Plays a sound effect (SFX 1) if rune is found
+   * - Opens the door (changes tile) if rune is found
    */
   public boolean checkForRune(int gridX, int gridY) {
     for (PlacedObject obj : hallObjects.get(currentHall)) {
