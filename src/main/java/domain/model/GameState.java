@@ -1188,4 +1188,28 @@ public class GameState implements Serializable {
     // If we got here, the rep is OK.
     return true;
   }
+
+  public void reinitialize(int tileSize, int maxScreenCol, int maxScreenRow) {
+    // Reinitialize TileManager
+    this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
+
+    // Reinitialize SoundManager
+    this.soundManager = SoundManager.getInstance();
+
+    // Reload hero's images
+    if (hero != null) {
+      hero.loadImage();
+    }
+
+    // Reload monster images
+    if (monsters != null) {
+      for (Monster monster : monsters) {
+        monster.loadImage();
+      }
+    }
+
+    // Reload any other transient BufferedImages
+    loadLuringGemImage();
+  }
+
 }

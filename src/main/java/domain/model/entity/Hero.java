@@ -17,6 +17,12 @@ public class Hero extends Entity implements Serializable {
 
   /** The hero's sprite image */
   private transient BufferedImage image;
+  private transient BufferedImage left1, left2;
+  private transient BufferedImage right1, right2;
+  private transient BufferedImage up1, up2;
+  private transient BufferedImage down1, down2;
+
+  private String direction;
 
   /** Tracks if the initial spawn position has been set */
   private boolean spawnPositionSet = false;
@@ -248,7 +254,7 @@ public class Hero extends Entity implements Serializable {
   }
 
   /** Loads the hero's sprite image from resources. */
-  private void loadImage() {
+  public void loadImage() {
     try {
       image = ImageIO.read(getClass().getResourceAsStream("/hero/player.png"));
       left1 = ImageIO.read(getClass().getResourceAsStream("/hero/player_left1.png"));

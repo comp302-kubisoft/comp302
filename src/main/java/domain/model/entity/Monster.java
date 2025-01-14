@@ -56,7 +56,7 @@ public class Monster extends Entity implements Serializable {
     loadImage();
   }
 
-  private void loadImage() {
+  public void loadImage() {
     try {
       String imagePath = switch (monsterType) {
         case FIGHTER -> "/monsters/fighter.png";

@@ -95,6 +95,9 @@ public class GameController implements Serializable {
         if (selectedSave != null) {
           GameState loadedState = SaveLoadManager.loadGame("saves/" + selectedSave);
           if (loadedState != null) {
+            // Reinitialize transient fields before setting the game state
+            loadedState.reinitialize(gamePanel.tileSize, gamePanel.maxScreenCol, gamePanel.maxScreenRow);
+
             gamePanel.gameState = loadedState;
             gamePanel.getRenderer().setGameState(loadedState);
             gamePanel.setMode(GameMode.PLAY);
