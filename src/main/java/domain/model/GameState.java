@@ -35,6 +35,7 @@ import domain.model.entity.Enchantment;
 import domain.model.entity.Hero;
 import domain.model.entity.Monster;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,13 +47,14 @@ import javax.imageio.ImageIO;
 import ui.sound.SoundManager;
 import ui.tile.TileManager;
 
-public class GameState {
+public class GameState implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   /** The player character entity */
   private Hero hero;
 
   /** Manages the game's tile-based map */
-  private TileManager tileManager;
+  private transient TileManager tileManager;
 
   /** List of all objects placed in each hall */
   private List<List<PlacedObject>> hallObjects;
@@ -86,14 +88,15 @@ public class GameState {
   /** Maximum number of monsters allowed in play mode */
   private static final int MAX_MONSTERS = 5;
 
-  private SoundManager soundManager;
+  private transient SoundManager soundManager;
 
   /**
    * Represents an object placed in the game world. Contains both pixel
    * coordinates and grid
    * positions for precise placement and collision detection.
    */
-  public static class PlacedObject {
+  public static class PlacedObject implements Serializable {
+    private static final long serialVersionUID = 1L;
     /** The type identifier of the placed object */
     public final int type;
 
@@ -171,7 +174,7 @@ public class GameState {
       Enchantment.Type.CLOAK_OF_PROTECTION,
       Enchantment.Type.LURING_GEM);
 
-  private BufferedImage luringGemImage;
+  private transient BufferedImage luringGemImage;
   private float gemThrowProgress = 0f; // 0 to 1, for throw animation
   private int gemStartX, gemStartY; // Starting position for throw animation
   private int gemTargetX, gemTargetY; // Target position for throw animation
@@ -514,21 +517,21 @@ public class GameState {
    * @param gridY Y coordinate to check
    * @return true if a rune was found, false otherwise
    * 
-   * Requires:
-   * - gridX and gridY must be valid grid coordinates within the game area
-   * - currentHall must be initialized and valid (0 to TOTAL_HALLS-1)
-   * - hallObjects must be initialized for the current hall
+   *         Requires:
+   *         - gridX and gridY must be valid grid coordinates within the game area
+   *         - currentHall must be initialized and valid (0 to TOTAL_HALLS-1)
+   *         - hallObjects must be initialized for the current hall
    * 
-   * Modifies:
-   * - runesFound (increments if rune is found)
-   * - runeFoundInCurrentHall (set to true if rune is found)
-   * - tileManager.mapTileNum[9][18] (changes to 3 if rune is found)
+   *         Modifies:
+   *         - runesFound (increments if rune is found)
+   *         - runeFoundInCurrentHall (set to true if rune is found)
+   *         - tileManager.mapTileNum[9][18] (changes to 3 if rune is found)
    * 
-   * Effects:
-   * - Returns true if a rune is found at the specified position
-   * - Returns false if no rune is found or no object exists at position
-   * - Plays a sound effect (SFX 1) if rune is found
-   * - Opens the door (changes tile) if rune is found
+   *         Effects:
+   *         - Returns true if a rune is found at the specified position
+   *         - Returns false if no rune is found or no object exists at position
+   *         - Plays a sound effect (SFX 1) if rune is found
+   *         - Opens the door (changes tile) if rune is found
    */
   public boolean checkForRune(int gridX, int gridY) {
     for (PlacedObject obj : hallObjects.get(currentHall)) {
@@ -994,9 +997,12 @@ public class GameState {
   }
 
   /**
-   * Throws a luring gem in the specified direction from the hero's current position.
-   * The gem acts as a distraction that attracts monsters to its location for a limited time.
-   * The gem will travel a fixed distance (GEM_THROW_DISTANCE) in the specified direction,
+   * Throws a luring gem in the specified direction from the hero's current
+   * position.
+   * The gem acts as a distraction that attracts monsters to its location for a
+   * limited time.
+   * The gem will travel a fixed distance (GEM_THROW_DISTANCE) in the specified
+   * direction,
    * staying within game boundaries.
    *
    * Requires:
@@ -1011,12 +1017,12 @@ public class GameState {
    *
    * Effects:
    * - If player has a luring gem:
-   *   > Calculates target position GEM_THROW_DISTANCE tiles away
-   *   > Ensures position stays within game boundaries
-   *   > Activates the gem effect
-   *   > Removes one gem from inventory
+   * > Calculates target position GEM_THROW_DISTANCE tiles away
+   * > Ensures position stays within game boundaries
+   * > Activates the gem effect
+   * > Removes one gem from inventory
    * - If no gem in inventory:
-   *   > No changes occur
+   * > No changes occur
    */
   public void throwLuringGem(String direction) {
     if (enchantmentInventory.getOrDefault(Enchantment.Type.LURING_GEM, 0) > 0) {

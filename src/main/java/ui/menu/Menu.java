@@ -17,7 +17,7 @@ public class Menu {
   private int selectedOption = 0;
 
   /** Available menu options */
-  private final String[] options = { "Start Game", "Help", "Exit" };
+  private final String[] options = { "Start Game", "Load", "Help", "Exit" };
 
   /** Time of last input processing */
   private long lastInputTime = 0;
@@ -186,8 +186,9 @@ public class Menu {
    * - Increment selectedOption (wrap around if needed) and play a cursor sound.
    * 3. If enterPressed is true and enough time has passed since last input:
    * - If currently selectedOption == 0 => Return GameMode.BUILD (start game)
-   * - If selectedOption == 1 => Return GameMode.HELP
-   * - If selectedOption == 2 => Call System.exit(0)
+   * - If selectedOption == 1 => Return GameMode.LOAD
+   * - If selectedOption == 2 => Return GameMode.HELP
+   * - If selectedOption == 3 => Call System.exit(0)
    * 4. If no option is selected by enterPress or if input is within delay, return
    * GameMode.MENU.
    */
@@ -213,8 +214,10 @@ public class Menu {
         case 0:
           return GameMode.BUILD;
         case 1:
-          return GameMode.HELP;
+          return GameMode.LOAD;
         case 2:
+          return GameMode.HELP;
+        case 3:
           System.exit(0);
           break;
       }

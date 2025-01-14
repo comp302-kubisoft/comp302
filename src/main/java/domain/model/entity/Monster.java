@@ -3,12 +3,15 @@ package domain.model.entity;
 import domain.model.GameState;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import ui.tile.TileManager;
 
-public class Monster extends Entity {
+public class Monster extends Entity implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   public enum Type {
     FIGHTER,
     WIZARD,
@@ -16,7 +19,7 @@ public class Monster extends Entity {
   }
 
   private Type monsterType;
-  private BufferedImage image;
+  private transient BufferedImage image;
   private long lastAttackTime = 0;
   private static final long ARCHER_ATTACK_COOLDOWN = 1000; // 1 second in milliseconds
   private static final long FIGHTER_ATTACK_COOLDOWN = 1000; // 1 second in milliseconds
@@ -27,14 +30,14 @@ public class Monster extends Entity {
   private Random random = new Random();
   private GameState gameState;
   private static final String[] DIRECTIONS = { "up", "down", "left", "right" };
-  private ui.sound.SoundManager soundManager;
+  private transient ui.sound.SoundManager soundManager;
   private static final long WIZARD_TELEPORT_INTERVAL = 5000; // 5 seconds
   private long lastTeleportTime = 0;
   private boolean isCastingSpell = false;
   private static final long SPELL_EFFECT_DURATION = 500; // 0.5 seconds spell effect
   private long pauseDuration = 0; // Track total pause duration
-  private TileManager tileManager;
-  private int tileSize;
+  private transient TileManager tileManager;
+  private transient int tileSize;
   private WizardStrategy wizardStrategy;
   private boolean shouldRemove = false;
 
@@ -109,7 +112,7 @@ public class Monster extends Entity {
       return;
 
     double remainingTime = gameState.getTimeRemaining();
-    double totalTime = gameState.getTotalTimeLimit(); 
+    double totalTime = gameState.getTotalTimeLimit();
     double remainingPercent = (totalTime > 0) ? (remainingTime / totalTime) * 100.0 : 0.0;
 
     WizardStrategy newStrategy;
@@ -340,16 +343,16 @@ public class Monster extends Entity {
   /**
    * Teleports the rune to a random placed object within the current hall.
    * 
-   * Requires: 
+   * Requires:
    * - The game state (`gameState`) must not be null.
    * - There must be at least one placed object in the current hall.
    * 
-   * Modifies: 
+   * Modifies:
    * - The `hasRune` property of placed objects in the current hall.
    * 
    * Effects:
    * - Transfers the rune from its current holder to a randomly selected
-   *   placed object in the current hall, excluding the current holder.
+   * placed object in the current hall, excluding the current holder.
    * - If no other placed object exists, the rune remains with its current holder.
    * - Plays a teleport sound effect if successful.
    */

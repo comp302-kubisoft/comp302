@@ -1,9 +1,10 @@
 package domain.model.entity;
 
 import domain.model.GameState;
+import java.io.Serializable;
 
-public class GoodSituationWizardStrategy implements WizardStrategy {
-
+public class GoodSituationWizardStrategy implements WizardStrategy, Serializable {
+    private static final long serialVersionUID = 1L;
     private static final long TELEPORT_INTERVAL = 3000; // 3 seconds
     private long lastTeleportTime;
 
@@ -25,4 +26,3 @@ public class GoodSituationWizardStrategy implements WizardStrategy {
         }
     }
 }
-

@@ -8,12 +8,15 @@ import domain.model.GameMode;
 import domain.model.GameState;
 import domain.model.entity.Hero;
 import domain.model.entity.Monster;
+
+import java.io.Serializable;
 import java.util.Random;
 import ui.input.InputState;
 import ui.main.GamePanel;
 import ui.menu.Menu;
 
-public class GameController {
+public class GameController implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   /** Reference to the current game state */
   private final GameState gameState;
@@ -73,6 +76,30 @@ public class GameController {
 
       if (newMode != GameMode.MENU) {
         gamePanel.setMode(newMode);
+        inputState.reset();
+      }
+    } else if (gamePanel.getMode() == GameMode.LOAD) {
+      if (inputState.escapePressed) {
+        gamePanel.setMode(GameMode.MENU);
+        inputState.reset();
+        return;
+      }
+
+      if (inputState.upPressed || inputState.downPressed) {
+        gamePanel.getRenderer().updateLoadScreenSelection(inputState.upPressed);
+        inputState.reset();
+      }
+
+      if (inputState.enterPressed) {
+        String selectedSave = gamePanel.getRenderer().getSelectedSaveFile();
+        if (selectedSave != null) {
+          GameState loadedState = SaveLoadManager.loadGame("saves/" + selectedSave);
+          if (loadedState != null) {
+            gamePanel.gameState = loadedState;
+            gamePanel.getRenderer().setGameState(loadedState);
+            gamePanel.setMode(GameMode.PLAY);
+          }
+        }
         inputState.reset();
       }
     } else if (gamePanel.getMode() == GameMode.HELP
@@ -355,6 +382,9 @@ public class GameController {
     switch (currentMode) {
       case MENU:
       case HELP:
+      case LOAD:
+        updateMenuOrHelpMode();
+        break;
       case GAME_OVER:
       case VICTORY:
         updateMenuOrHelpMode();
