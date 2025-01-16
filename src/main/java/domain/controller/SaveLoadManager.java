@@ -1,11 +1,14 @@
 package domain.controller;
 
-import domain.model.GameState;
 import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Manages saving/loading of the entire game via serialization of the
+ * GameController.
+ */
 public class SaveLoadManager {
 
     private static final String SAVE_DIRECTORY = "saves";
@@ -20,16 +23,15 @@ public class SaveLoadManager {
     }
 
     /**
-     * Saves the given GameState to disk with the specified saveName.
+     * Saves the given GameController (which contains the GameState) to disk.
      *
-     * @param gameState The current game state to save
-     * @param saveName  A friendly name for the save file (no extension)
+     * @param gameController The current game controller to save
+     * @param saveName       A friendly name for the save file (no extension)
      */
-    public static void saveGame(GameState gameState, String saveName) {
+    public static void saveGame(GameController gameController, String saveName) {
         String filePath = SAVE_DIRECTORY + File.separator + saveName + ".ser";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
-            // Write the entire GameState object graph (including all Serializable classes).
-            oos.writeObject(gameState);
+            oos.writeObject(gameController);
             System.out.println("Game saved successfully to " + filePath);
         } catch (IOException e) {
             e.printStackTrace();
@@ -37,17 +39,17 @@ public class SaveLoadManager {
     }
 
     /**
-     * Loads a GameState from the specified file path.
+     * Loads a GameController from the specified file path.
      *
      * @param filePath The path to the .ser file
-     * @return The deserialized GameState, or null if loading fails
+     * @return The deserialized GameController, or null if loading fails
      */
-    public static GameState loadGame(String filePath) {
+    public static GameController loadGame(String filePath) {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             Object obj = ois.readObject();
-            if (obj instanceof GameState) {
+            if (obj instanceof GameController) {
                 System.out.println("Game loaded successfully from " + filePath);
-                return (GameState) obj;
+                return (GameController) obj;
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

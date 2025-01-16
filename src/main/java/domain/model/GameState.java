@@ -1196,20 +1196,24 @@ public class GameState implements Serializable {
     // Reinitialize SoundManager
     this.soundManager = SoundManager.getInstance();
 
-    // Reload hero's images
+    // Reload hero's images and reassign GameState reference
     if (hero != null) {
       hero.loadImage();
+      hero.setGameState(this); // Reassign GameState to Hero
     }
 
-    // Reload monster images
+    // Reload monster images and reassign GameState reference
     if (monsters != null) {
       for (Monster monster : monsters) {
         monster.loadImage();
+        monster.setGameState(this); // Reassign GameState to Monster
       }
     }
 
     // Reload any other transient BufferedImages
     loadLuringGemImage();
+
+    lastUpdateTime = System.currentTimeMillis();
   }
 
 }

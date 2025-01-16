@@ -31,7 +31,7 @@ public class Hero extends Entity implements Serializable {
   private static final int DEFAULT_SPEED = 4;
 
   /** Reference to the game state for collision detection */
-  private GameState gameState;
+  private transient GameState gameState;
 
   /** Random number generator for spawn position */
   private static final Random random = new Random();
@@ -480,5 +480,14 @@ public class Hero extends Entity implements Serializable {
     int yOffset = (int) (tileSize * COLLISION_BOX_Y_OFFSET);
 
     return new int[] { x + xOffset, y + yOffset, boxWidth, boxHeight };
+  }
+
+  /**
+   * Sets the GameState reference. Should be called after deserialization.
+   *
+   * @param gameState The GameState instance to associate with the Hero
+   */
+  public void setGameState(GameState gameState) {
+    this.gameState = gameState;
   }
 }

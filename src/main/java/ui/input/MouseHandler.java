@@ -100,7 +100,7 @@ public class MouseHandler extends MouseAdapter {
       soundManager.playSFX(6); // Play cursor sound
       // Generate a save name using timestamp
       String saveName = "save_" + System.currentTimeMillis();
-      domain.controller.SaveLoadManager.saveGame(gameState, saveName);
+      domain.controller.SaveLoadManager.saveGame(gamePanel.getGameController(), saveName);
       return;
     }
 

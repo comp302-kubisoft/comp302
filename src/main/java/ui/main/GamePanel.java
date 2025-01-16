@@ -6,6 +6,7 @@
 package ui.main;
 
 import domain.controller.GameController;
+import domain.controller.SaveLoadManager;
 import domain.model.GameMode;
 import domain.model.GameState;
 import java.awt.Color;
@@ -72,7 +73,7 @@ public class GamePanel extends JPanel implements Runnable {
   GameController gameController;
 
   /** Manages the game menu */
-  private Menu menu;
+  private transient Menu menu;
 
   /** Reference to the sound manager */
   private SoundManager soundManager;
@@ -81,7 +82,8 @@ public class GamePanel extends JPanel implements Runnable {
   private GameMode currentMode = GameMode.MENU;
 
   /**
-   * Initializes the game panel and all its components. Sets up the display, input handlers, game
+   * Initializes the game panel and all its components. Sets up the display, input
+   * handlers, game
    * state, renderer, and controllers.
    */
   public GamePanel() {
@@ -158,7 +160,10 @@ public class GamePanel extends JPanel implements Runnable {
     return gameController;
   }
 
-  /** Main game loop implementation. Handles timing, updates, and rendering at the specified FPS. */
+  /**
+   * Main game loop implementation. Handles timing, updates, and rendering at the
+   * specified FPS.
+   */
   @Override
   public void run() {
     double delta = 0;
@@ -181,7 +186,8 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Updates the game state based on the current game mode. Delegates to appropriate controller
+   * Updates the game state based on the current game mode. Delegates to
+   * appropriate controller
    * methods for each mode.
    */
   public void update() {
@@ -189,7 +195,8 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Handles the rendering of the game. Sets up graphics context and delegates rendering to the
+   * Handles the rendering of the game. Sets up graphics context and delegates
+   * rendering to the
    * Renderer.
    *
    * @param g The Graphics context provided by Swing
@@ -209,7 +216,8 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Resets the game state to its initial condition. Called when returning to menu or starting a new
+   * Resets the game state to its initial condition. Called when returning to menu
+   * or starting a new
    * game.
    */
   public void resetGameState() {
@@ -242,5 +250,37 @@ public class GamePanel extends JPanel implements Runnable {
 
   public void playSFX(int i) {
     soundManager.playSFX(i);
+  }
+
+  /**
+   * Loads a saved GameController and reinitializes all references, including
+   * GameState.
+   * 
+   * @param saveFilePath the .ser file to load from
+   */
+  public void loadGameController(String saveFilePath) {
+    GameController loadedController = SaveLoadManager.loadGame(saveFilePath);
+    if (loadedController != null) {
+      // Reinitialize transient fields:
+      loadedController.reinitialize(this, inputState);
+
+      // Update this panel to use the loaded controller and state
+      this.gameController = loadedController;
+      this.gameState = loadedController.getGameState();
+
+      // Rebuild the renderer with the newly loaded state
+      this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
+      this.renderer.setMenu(menu);
+
+      // Rebuild the mouse handler
+      this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
+      for (java.awt.event.MouseListener listener : this.getMouseListeners()) {
+        this.removeMouseListener(listener);
+      }
+      this.addMouseListener(mouseH);
+
+      // Optionally jump into PLAY mode or some other mode depending on your design
+      this.setMode(GameMode.PLAY);
+    }
   }
 }

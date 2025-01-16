@@ -12,6 +12,9 @@ import ui.tile.TileManager;
 public class Monster extends Entity implements Serializable {
   private static final long serialVersionUID = 1L;
 
+  /** Reference to the game state */
+  private transient GameState gameState;
+
   public enum Type {
     FIGHTER,
     WIZARD,
@@ -28,7 +31,6 @@ public class Monster extends Entity implements Serializable {
   private static final long DIRECTION_CHANGE_INTERVAL = 2000; // 2 seconds
   private long lastDirectionChange;
   private Random random = new Random();
-  private GameState gameState;
   private static final String[] DIRECTIONS = { "up", "down", "left", "right" };
   private transient ui.sound.SoundManager soundManager;
   private static final long WIZARD_TELEPORT_INTERVAL = 5000; // 5 seconds
@@ -94,6 +96,11 @@ public class Monster extends Entity implements Serializable {
     return monsterType;
   }
 
+  /**
+   * Sets the GameState reference. Should be called after deserialization.
+   *
+   * @param gameState The GameState instance to associate with the Monster
+   */
   public void setGameState(GameState gameState) {
     this.gameState = gameState;
   }
