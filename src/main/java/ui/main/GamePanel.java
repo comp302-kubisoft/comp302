@@ -98,15 +98,15 @@ public class GamePanel extends JPanel implements Runnable {
 
     this.gameState = new GameState(tileSize, maxScreenCol, maxScreenRow);
     this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
-    this.menu = new Menu();
+    this.soundManager = SoundManager.getInstance();
+    this.menu = new Menu(soundManager);
     this.renderer.setMenu(menu);
     this.gameController = new GameController(gameState, inputState, this);
 
     this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
     this.addMouseListener(mouseH);
 
-    this.soundManager = SoundManager.getInstance();
-    soundManager.playMusic(0);
+    this.soundManager.playMusic(0);
   }
 
   /**

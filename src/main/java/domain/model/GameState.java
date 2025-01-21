@@ -695,8 +695,18 @@ public class GameState implements Serializable {
    * game update.
    */
   public void updateEnchantments() {
-    // Remove expired enchantments
-    enchantments.removeIf(Enchantment::hasExpired);
+    // Create a new list to store enchantments that should be removed
+    List<Enchantment> enchantmentsToRemove = new ArrayList<>();
+    
+    // First pass: identify enchantments that have expired
+    for (Enchantment enchantment : enchantments) {
+        if (enchantment.hasExpired()) {
+            enchantmentsToRemove.add(enchantment);
+        }
+    }
+    
+    // Second pass: remove the expired enchantments
+    enchantments.removeAll(enchantmentsToRemove);
 
     // Check if it's time to spawn a new enchantment
     long currentTime = System.currentTimeMillis();
@@ -704,8 +714,8 @@ public class GameState implements Serializable {
     long effectiveLastSpawnTime = lastEnchantmentSpawnTime - pauseDuration;
 
     if (effectiveTime - effectiveLastSpawnTime >= ENCHANTMENT_SPAWN_INTERVAL) {
-      spawnRandomEnchantment();
-      lastEnchantmentSpawnTime = currentTime;
+        spawnRandomEnchantment();
+        lastEnchantmentSpawnTime = currentTime;
     }
   }
 

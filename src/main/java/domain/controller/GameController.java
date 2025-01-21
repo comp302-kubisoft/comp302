@@ -14,6 +14,7 @@ import java.util.Random;
 import ui.input.InputState;
 import ui.main.GamePanel;
 import ui.menu.Menu;
+import ui.sound.SoundManager;
 
 public class GameController implements Serializable {
   private static final long serialVersionUID = 1L;
@@ -49,7 +50,7 @@ public class GameController implements Serializable {
     this.gameState = gameState;
     this.inputState = inputState;
     this.gamePanel = gamePanel;
-    this.menu = new Menu();
+    this.menu = new Menu(SoundManager.getInstance());
     this.spawnPositionSet = false;
     if (gamePanel != null && gamePanel.getRenderer() != null) {
       gamePanel.getRenderer().setMenu(menu);
@@ -66,7 +67,7 @@ public class GameController implements Serializable {
     this.gamePanel = gamePanel;
     this.inputState = inputState;
     if (this.menu == null) {
-      this.menu = new Menu();
+      this.menu = new Menu(SoundManager.getInstance());
     }
     if (gamePanel != null && gamePanel.getRenderer() != null) {
       gamePanel.getRenderer().setMenu(menu);
@@ -135,6 +136,9 @@ public class GameController implements Serializable {
         if (previousMode == GameMode.GAME_OVER || previousMode == GameMode.VICTORY) {
           gamePanel.playMusic(0);
         }
+      } else if (inputState.rightPressed || inputState.leftPressed) {
+        gamePanel.getRenderer().updateHelpPage(inputState.rightPressed);
+        inputState.reset();
       }
     }
   }
@@ -165,51 +169,53 @@ public class GameController implements Serializable {
       }
     }
 
-    // When enter is pressed, check minimum objects requirement and handle hall
-    // transition
+    // When enter is pressed, check minimum objects requirement for ALL halls
     if (inputState.enterPressed) {
-      int currentHall = gameState.getCurrentHall();
-      int objectCount = gameState.getPlacedObjects().size();
-      int requiredObjects;
+      // Check all halls for minimum requirements
+      for (int hall = 0; hall < GameState.TOTAL_HALLS; hall++) {
+        int objectCount = gameState.getPlacedObjectsInHall(hall).size();
+        int requiredObjects = getRequiredObjects(hall);
 
-      // Define minimum object requirements for each hall
-      switch (currentHall) {
-        case 0:
-          requiredObjects = 6;
-          break;
-        case 1:
-          requiredObjects = 9;
-          break;
-        case 2:
-          requiredObjects = 13;
-          break;
-        case 3:
-          requiredObjects = 17;
-          break;
-        default:
-          requiredObjects = 0;
+        if (objectCount < requiredObjects) {
+          // Show warning message through renderer
+          gamePanel.getRenderer().showWarningMessage(
+              "Minimum " + requiredObjects + " objects required in " + getHallName(hall)
+          );
+          inputState.reset();
+          return;
+        }
       }
 
-      // Check if the current hall meets the minimum object requirement
-      if (objectCount < requiredObjects) {
-
-        inputState.reset();
-        return;
+      // If we get here, all halls meet requirements
+      // Assign random runes to all halls
+      for (int hall = 0; hall < GameState.TOTAL_HALLS; hall++) {
+        gameState.setCurrentHall(hall);
+        gameState.assignRandomRune();
       }
 
-      // Assign a random rune to the current hall
-      gameState.assignRandomRune();
+      // Start play mode with the first hall
+      gameState.setCurrentHall(0);
+      startPlayMode();
+    }
+  }
 
-      // Move to next hall or start play mode
-      if (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1) {
-        // Move to next hall
-        gameState.setCurrentHall(gameState.getCurrentHall() + 1);
-        inputState.reset();
-      } else {
-        // All halls are complete, start play mode with the first hall
-        gameState.setCurrentHall(0);
-        startPlayMode();
-      }
+  private int getRequiredObjects(int hall) {
+    switch (hall) {
+      case 0: return 6;  // Earth
+      case 1: return 9;  // Air
+      case 2: return 13; // Water
+      case 3: return 17; // Fire
+      default: return 0;
+    }
+  }
+
+  private String getHallName(int hall) {
+    switch (hall) {
+      case 0: return "Hall of Earth";
+      case 1: return "Hall of Air";
+      case 2: return "Hall of Water";
+      case 3: return "Hall of Fire";
+      default: return "Unknown Hall";
     }
   }
 
@@ -262,22 +268,19 @@ public class GameController implements Serializable {
       spawnPositionSet = true;
     }
 
-    // Handle monster spawning and updates only if not paused
-    if (!gamePanel.getRenderer().isPaused()) {
-      long currentTime = System.currentTimeMillis();
-      // Adjust the comparison time by subtracting pause duration
-      long adjustedTime = currentTime - pauseDuration;
-      if (adjustedTime - lastMonsterSpawnTime >= MONSTER_SPAWN_INTERVAL) {
-        spawnRandomMonster();
-        lastMonsterSpawnTime = adjustedTime;
-      }
-
-      // Update monster states and interactions
-      gameState.updateMonsters();
-
-      // Update enchantments
-      gameState.updateEnchantments();
+    // Update monster spawning with timing check
+    long currentTime = System.currentTimeMillis();
+    long effectiveTime = currentTime - pauseDuration;
+    if (effectiveTime - lastMonsterSpawnTime >= MONSTER_SPAWN_INTERVAL) {
+        spawnMonster();
+        lastMonsterSpawnTime = currentTime;
     }
+
+    // Update monster states and interactions
+    gameState.updateMonsters();
+
+    // Update enchantments
+    gameState.updateEnchantments();
 
     // Handle hero movement
     int dx = 0, dy = 0;
@@ -359,27 +362,55 @@ public class GameController implements Serializable {
     gameState.updateLuringGemEffect();
   }
 
-  /**
-   * Spawns a random monster at a random empty location. Only spawns if we haven't
-   * reached the
-   * maximum monster limit.
-   */
-  private void spawnRandomMonster() {
-    // Get a random empty position
-    int[] position = gameState.findRandomEmptyPosition();
-    if (position == null)
-      return; // No empty positions available
-
-    // Choose a random monster type
-    Monster.Type[] monsterTypes = Monster.Type.values();
-    Monster.Type randomType = monsterTypes[new Random().nextInt(monsterTypes.length)];
-
-    // Create and add the monster
-    Monster monster = new Monster(randomType, position[0], position[1]);
-    if (!gameState.addMonster(monster)) {
-      // Monster wasn't added because we're at max capacity
-      return;
+  private void spawnMonster() {
+    Hero hero = gameState.getHero();
+    int heroX = hero.getX();
+    int heroY = hero.getY();
+    
+    // Reduced safe radius to 2 tiles for more balanced spawning
+    int safeRadius = 2;  // Changed from 3 to 2
+    
+    // Try to find a valid spawn position with maximum attempts
+    int maxAttempts = 20;
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+        // Get random position
+        int[] position = gameState.findRandomEmptyPosition();
+        if (position == null) return;  // No empty positions available
+        
+        // Check if position is far enough from hero
+        int distanceX = Math.abs(position[0] - heroX);
+        int distanceY = Math.abs(position[1] - heroY);
+        
+        // Only spawn if the monster is outside the safe radius
+        if (distanceX > safeRadius || distanceY > safeRadius) {
+            // Choose monster type based on current hall
+            Monster.Type monsterType;
+            switch (gameState.getCurrentHall()) {
+                case 0: // Earth
+                    monsterType = Monster.Type.FIGHTER;
+                    break;
+                case 1: // Air
+                    monsterType = Monster.Type.ARCHER;
+                    break;
+                case 2: // Water
+                    monsterType = new Random().nextBoolean() ? Monster.Type.FIGHTER : Monster.Type.ARCHER;
+                    break;
+                case 3: // Fire
+                    monsterType = new Random().nextBoolean() 
+                        ? Monster.Type.WIZARD 
+                        : (new Random().nextBoolean() ? Monster.Type.FIGHTER : Monster.Type.ARCHER);
+                    break;
+                default:
+                    return;
+            }
+            
+            // Create and add the monster
+            Monster monster = new Monster(monsterType, position[0], position[1]);
+            gameState.addMonster(monster);
+            return;  // Successfully spawned monster
+        }
     }
+    // If we get here, couldn't find a valid spawn position after max attempts
   }
 
   /**
