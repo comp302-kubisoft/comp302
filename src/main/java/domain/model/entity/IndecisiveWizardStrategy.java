@@ -1,8 +1,10 @@
 package domain.model.entity;
 
 import domain.model.GameState;
+import java.io.Serializable;
 
-public class IndecisiveWizardStrategy implements WizardStrategy {
+public class IndecisiveWizardStrategy implements WizardStrategy, Serializable {
+    private static final long serialVersionUID = 1L;
 
     private static final long EXISTENCE_DURATION = 2000; // 2 seconds
     private long startTime;

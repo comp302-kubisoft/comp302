@@ -7,14 +7,22 @@ package domain.model.entity;
 import domain.model.GameState;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import ui.tile.TileManager;
 
-public class Hero extends Entity {
+public class Hero extends Entity implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   /** The hero's sprite image */
-  private BufferedImage image;
+  private transient BufferedImage image;
+  private transient BufferedImage left1, left2;
+  private transient BufferedImage right1, right2;
+  private transient BufferedImage up1, up2;
+  private transient BufferedImage down1, down2;
+
+  private String direction;
 
   /** Tracks if the initial spawn position has been set */
   private boolean spawnPositionSet = false;
@@ -23,7 +31,7 @@ public class Hero extends Entity {
   private static final int DEFAULT_SPEED = 4;
 
   /** Reference to the game state for collision detection */
-  private GameState gameState;
+  private transient GameState gameState;
 
   /** Random number generator for spawn position */
   private static final Random random = new Random();
@@ -68,7 +76,8 @@ public class Hero extends Entity {
   }
 
   /**
-   * Sets the initial default values for the hero. Initializes position, speed, direction, and
+   * Sets the initial default values for the hero. Initializes position, speed,
+   * direction, and
    * health.
    */
   private void setDefaultValues() {
@@ -80,14 +89,16 @@ public class Hero extends Entity {
   }
 
   /**
-   * Sets the hero's spawn position to a random valid location. Ensures the spawn point is within
+   * Sets the hero's spawn position to a random valid location. Ensures the spawn
+   * point is within
    * the game area and not colliding with objects.
    *
    * @param tileManager Reference to the tile manager for collision checking
-   * @param tileSize Size of each tile in pixels
+   * @param tileSize    Size of each tile in pixels
    */
   public void setSpawnPosition(TileManager tileManager, int tileSize) {
-    if (spawnPositionSet) return;
+    if (spawnPositionSet)
+      return;
 
     // Get game area boundaries from GameState
     int minX = gameState.getGameAreaStart();
@@ -112,7 +123,8 @@ public class Hero extends Entity {
       }
     }
   }
-  /** 
+
+  /**
    * Requires:
    * - dx and dy are valid movement deltas (typically between -speed and +speed)
    * - tileManager is properly initialized with valid tile mappings
@@ -127,21 +139,22 @@ public class Hero extends Entity {
    * Effects:
    * - Updates hero's movement direction based on dx/dy
    * - If movement is collision-free:
-   *   - Updates hero's position by dx and dy
-   *   - Updates animation state if moving
+   * - Updates hero's position by dx and dy
+   * - Updates animation state if moving
    * - If collision would occur:
-   *   - Maintains current position
-   *   - Still updates direction and animation
+   * - Maintains current position
+   * - Still updates direction and animation
    */
 
   /**
-   * Attempts to move the hero by the specified amount. Checks for collisions before allowing
+   * Attempts to move the hero by the specified amount. Checks for collisions
+   * before allowing
    * movement. Updates animation and direction.
    *
-   * @param dx Change in x position
-   * @param dy Change in y position
+   * @param dx          Change in x position
+   * @param dy          Change in y position
    * @param tileManager Reference to the tile manager for collision checking
-   * @param tileSize Size of each tile in pixels
+   * @param tileSize    Size of each tile in pixels
    */
   public void moveIfPossible(int dx, int dy, TileManager tileManager, int tileSize) {
     // Update animation only if moving
@@ -150,10 +163,14 @@ public class Hero extends Entity {
     }
 
     // Set direction based on movement
-    if (dx < 0) direction = "left";
-    if (dx > 0) direction = "right";
-    if (dy < 0) direction = "up";
-    if (dy > 0) direction = "down";
+    if (dx < 0)
+      direction = "left";
+    if (dx > 0)
+      direction = "right";
+    if (dy < 0)
+      direction = "up";
+    if (dy > 0)
+      direction = "down";
 
     if (dx != 0) {
       int newX = x + dx;
@@ -170,25 +187,26 @@ public class Hero extends Entity {
     }
   }
 
-/**
- * Requires:
- * - newX and newY are valid pixel coordinates within the game map bounds.
- * - tileManager is a properly initialized instance of TileManager.
- * - tileSize is a positive integer representing the size of a tile in pixels.
- * - gameState is a valid instance containing placed objects and monsters.
- * 
- * Modifies:
- * - None.
- * 
- * Effects:
- * - Calculates a collision box based on the provided newX, newY coordinates.
- * - Checks for collisions with:
- *   1. Wall tiles in the game map using tileManager.
- *   2. Placed objects from the gameState within the collision box area.
- *   3. Monsters from the gameState within the collision box area.
- * - Returns true if any collision is detected with a wall, placed object, or monster.
- * - Returns false if the path is clear of all obstacles.
- */
+  /**
+   * Requires:
+   * - newX and newY are valid pixel coordinates within the game map bounds.
+   * - tileManager is a properly initialized instance of TileManager.
+   * - tileSize is a positive integer representing the size of a tile in pixels.
+   * - gameState is a valid instance containing placed objects and monsters.
+   * 
+   * Modifies:
+   * - None.
+   * 
+   * Effects:
+   * - Calculates a collision box based on the provided newX, newY coordinates.
+   * - Checks for collisions with:
+   * 1. Wall tiles in the game map using tileManager.
+   * 2. Placed objects from the gameState within the collision box area.
+   * 3. Monsters from the gameState within the collision box area.
+   * - Returns true if any collision is detected with a wall, placed object, or
+   * monster.
+   * - Returns false if the path is clear of all obstacles.
+   */
   private boolean checkCollision(int newX, int newY, TileManager tileManager, int tileSize) {
     // Calculate collision box dimensions
     int boxWidth = (int) (tileSize * COLLISION_BOX_WIDTH); // 8 pixels
@@ -236,7 +254,7 @@ public class Hero extends Entity {
   }
 
   /** Loads the hero's sprite image from resources. */
-  private void loadImage() {
+  public void loadImage() {
     try {
       image = ImageIO.read(getClass().getResourceAsStream("/hero/player.png"));
       left1 = ImageIO.read(getClass().getResourceAsStream("/hero/player_left1.png"));
@@ -332,7 +350,8 @@ public class Hero extends Entity {
   }
 
   /**
-   * Decreases the hero's health by 1 and triggers damage effect. Won't take damage from archers if
+   * Decreases the hero's health by 1 and triggers damage effect. Won't take
+   * damage from archers if
    * cloaked.
    */
   public void loseHealth(Monster attacker) {
@@ -351,7 +370,8 @@ public class Hero extends Entity {
   }
 
   /**
-   * Resets the spawn position flag to allow setting a new spawn position. Used when transitioning
+   * Resets the spawn position flag to allow setting a new spawn position. Used
+   * when transitioning
    * between halls.
    */
   public void resetSpawnPosition() {
@@ -368,20 +388,20 @@ public class Hero extends Entity {
   }
 
   /**
-   * Gets the current sprite image based on direction and animation state. Also applies damage
+   * Gets the current sprite image based on direction and animation state. Also
+   * applies damage
    * effect if the hero is currently damaged.
    *
    * @return The BufferedImage to display
    */
   public BufferedImage getCurrentSprite() {
-    BufferedImage currentSprite =
-        switch (direction) {
-          case "left" -> (spriteNum == 1) ? left1 : left2;
-          case "right" -> (spriteNum == 1) ? right1 : right2;
-          case "up" -> (spriteNum == 1) ? up1 : up2;
-          case "down" -> (spriteNum == 1) ? down1 : down2;
-          default -> image;
-        };
+    BufferedImage currentSprite = switch (direction) {
+      case "left" -> (spriteNum == 1) ? left1 : left2;
+      case "right" -> (spriteNum == 1) ? right1 : right2;
+      case "up" -> (spriteNum == 1) ? up1 : up2;
+      case "down" -> (spriteNum == 1) ? down1 : down2;
+      default -> image;
+    };
 
     // Apply cloak effect if active
     if (gameState.isCloakEffectActive()) {
@@ -397,9 +417,8 @@ public class Hero extends Entity {
       }
 
       // Create shadowy version of sprite
-      BufferedImage shadowSprite =
-          new BufferedImage(
-              currentSprite.getWidth(), currentSprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
+      BufferedImage shadowSprite = new BufferedImage(
+          currentSprite.getWidth(), currentSprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
       // Make sprite semi-transparent and bluish
       for (int x = 0; x < currentSprite.getWidth(); x++) {
@@ -425,9 +444,8 @@ public class Hero extends Entity {
         isDamaged = false;
       } else {
         // Create a red-tinted copy of the sprite
-        BufferedImage tintedSprite =
-            new BufferedImage(
-                currentSprite.getWidth(), currentSprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage tintedSprite = new BufferedImage(
+            currentSprite.getWidth(), currentSprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
         for (int x = 0; x < currentSprite.getWidth(); x++) {
           for (int y = 0; y < currentSprite.getHeight(); y++) {
@@ -461,6 +479,15 @@ public class Hero extends Entity {
     int xOffset = (int) (tileSize * COLLISION_BOX_X_OFFSET);
     int yOffset = (int) (tileSize * COLLISION_BOX_Y_OFFSET);
 
-    return new int[] {x + xOffset, y + yOffset, boxWidth, boxHeight};
+    return new int[] { x + xOffset, y + yOffset, boxWidth, boxHeight };
+  }
+
+  /**
+   * Sets the GameState reference. Should be called after deserialization.
+   *
+   * @param gameState The GameState instance to associate with the Hero
+   */
+  public void setGameState(GameState gameState) {
+    this.gameState = gameState;
   }
 }

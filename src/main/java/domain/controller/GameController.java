@@ -8,27 +8,30 @@ import domain.model.GameMode;
 import domain.model.GameState;
 import domain.model.entity.Hero;
 import domain.model.entity.Monster;
+
+import java.io.Serializable;
 import java.util.Random;
 import ui.input.InputState;
 import ui.main.GamePanel;
 import ui.menu.Menu;
 
-public class GameController {
+public class GameController implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   /** Reference to the current game state */
-  private final GameState gameState;
+  private GameState gameState;
 
-  /** Handles input state tracking */
-  private final InputState inputState;
+  /** Handles input state tracking (transient because we reinit after load) */
+  private transient InputState inputState;
 
-  /** Reference to the main game panel */
-  private final GamePanel gamePanel;
+  /** Reference to the main game panel (transient because we reinit after load) */
+  private transient GamePanel gamePanel;
+
+  /** Manages menu state and interactions */
+  private transient Menu menu;
 
   /** Tracks if hero spawn position has been set */
   private boolean spawnPositionSet = false;
-
-  /** Manages menu state and interactions */
-  private Menu menu;
 
   /** Time of last monster spawn */
   private long lastMonsterSpawnTime;
@@ -42,20 +45,44 @@ public class GameController {
   /** Interval between monster spawns in milliseconds */
   private static final long MONSTER_SPAWN_INTERVAL = 8000; // 8 seconds
 
-  /**
-   * Initializes the game controller with necessary references and initial state.
-   *
-   * @param gameState  The game state to control
-   * @param inputState The input state to monitor
-   * @param gamePanel  The main game panel reference
-   */
   public GameController(GameState gameState, InputState inputState, GamePanel gamePanel) {
     this.gameState = gameState;
     this.inputState = inputState;
     this.gamePanel = gamePanel;
     this.menu = new Menu();
     this.spawnPositionSet = false;
-    gamePanel.getRenderer().setMenu(menu);
+    if (gamePanel != null && gamePanel.getRenderer() != null) {
+      gamePanel.getRenderer().setMenu(menu);
+    }
+  }
+
+  /**
+   * Reinitializes any transient fields after deserialization. Call this right
+   * after loading
+   * the GameController from file, supplying the new GamePanel and InputState
+   * references.
+   */
+  public void reinitialize(GamePanel gamePanel, InputState inputState) {
+    this.gamePanel = gamePanel;
+    this.inputState = inputState;
+    if (this.menu == null) {
+      this.menu = new Menu();
+    }
+    if (gamePanel != null && gamePanel.getRenderer() != null) {
+      gamePanel.getRenderer().setMenu(menu);
+    }
+
+    // Reinitialize transient fields in the GameState
+    if (this.gameState != null) {
+      this.gameState.reinitialize(
+          gamePanel.tileSize,
+          gamePanel.maxScreenCol,
+          gamePanel.maxScreenRow);
+    }
+  }
+
+  public GameState getGameState() {
+    return this.gameState;
   }
 
   /**
@@ -73,6 +100,26 @@ public class GameController {
 
       if (newMode != GameMode.MENU) {
         gamePanel.setMode(newMode);
+        inputState.reset();
+      }
+    } else if (gamePanel.getMode() == GameMode.LOAD) {
+      if (inputState.escapePressed) {
+        gamePanel.setMode(GameMode.MENU);
+        inputState.reset();
+        return;
+      }
+
+      if (inputState.upPressed || inputState.downPressed) {
+        gamePanel.getRenderer().updateLoadScreenSelection(inputState.upPressed);
+        inputState.reset();
+      }
+
+      if (inputState.enterPressed) {
+        String selectedSave = gamePanel.getRenderer().getSelectedSaveFile();
+        if (selectedSave != null) {
+          // Call the GamePanel method to load the controller
+          gamePanel.loadGameController("saves/" + selectedSave);
+        }
         inputState.reset();
       }
     } else if (gamePanel.getMode() == GameMode.HELP
@@ -355,6 +402,9 @@ public class GameController {
     switch (currentMode) {
       case MENU:
       case HELP:
+      case LOAD:
+        updateMenuOrHelpMode();
+        break;
       case GAME_OVER:
       case VICTORY:
         updateMenuOrHelpMode();

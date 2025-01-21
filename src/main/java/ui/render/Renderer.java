@@ -36,6 +36,8 @@ public class Renderer {
   private final Color WOOD_DARK = new Color(87, 61, 38);
   private final Color WOOD_LIGHT = new Color(116, 82, 53);
   private final Color TEXT_COLOR = new Color(231, 231, 231);
+  private final Color SELECTED_COLOR = new Color(255, 255, 255);
+  private final Color UNSELECTED_COLOR = new Color(180, 180, 180);
 
   // Hall theme colors
   private final Color EARTH_DARK = new Color(101, 67, 33); // Dark brown
@@ -117,6 +119,9 @@ public class Renderer {
         break;
       case VICTORY:
         drawVictoryScreen(g2);
+        break;
+      case LOAD:
+        drawLoadScreen(g2);
         break;
       case PLAY:
         // Draw main game area
@@ -205,9 +210,8 @@ public class Renderer {
     Color lightColor = getHallLightColor(gameState.getCurrentHall());
 
     // Draw panel background with gradient
-    GradientPaint woodGradient =
-        new GradientPaint(
-            panelX, panelY, darkColor, panelX + panelWidth, panelY + panelHeight, lightColor);
+    GradientPaint woodGradient = new GradientPaint(
+        panelX, panelY, darkColor, panelX + panelWidth, panelY + panelHeight, lightColor);
     g2.setPaint(woodGradient);
     g2.fillRect(panelX, panelY, panelWidth, panelHeight);
 
@@ -262,9 +266,8 @@ public class Renderer {
     g2.drawString(navInstructions, panelX + (panelWidth - navWidth) / 2, panelY + 100);
 
     // Draw action instructions
-    String instructions =
-        "Press ENTER to "
-            + (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1 ? "save hall" : "start game");
+    String instructions = "Press ENTER to "
+        + (gameState.getCurrentHall() < GameState.TOTAL_HALLS - 1 ? "save hall" : "start game");
     int instructionsWidth = g2.getFontMetrics().stringWidth(instructions);
     g2.drawString(instructions, panelX + (panelWidth - instructionsWidth) / 2, panelY + 120);
 
@@ -328,9 +331,8 @@ public class Renderer {
     int panelHeight = screenHeight - 2 * margin;
 
     // Create gradient for wooden panel
-    GradientPaint woodGradient =
-        new GradientPaint(
-            margin, margin, WOOD_DARK, margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
+    GradientPaint woodGradient = new GradientPaint(
+        margin, margin, WOOD_DARK, margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
     g2.setPaint(woodGradient);
     g2.fillRect(margin, margin, panelWidth, panelHeight);
 
@@ -398,11 +400,11 @@ public class Renderer {
 
     // Draw object images and descriptions
     BufferedImage[] objects = {
-      buildObjectManager.getImage(0), // chest
-      buildObjectManager.getImage(1), // barrel
-      buildObjectManager.getImage(2), // torch
-      buildObjectManager.getImage(3), // skull
-      buildObjectManager.getImage(4) // vase
+        buildObjectManager.getImage(0), // chest
+        buildObjectManager.getImage(1), // barrel
+        buildObjectManager.getImage(2), // torch
+        buildObjectManager.getImage(3), // skull
+        buildObjectManager.getImage(4) // vase
     };
 
     // Draw objects with larger spacing
@@ -419,12 +421,9 @@ public class Renderer {
 
     // Draw monster images and descriptions
     try {
-      BufferedImage fighterImage =
-          ImageIO.read(getClass().getResourceAsStream("/monsters/fighter.png"));
-      BufferedImage archerImage =
-          ImageIO.read(getClass().getResourceAsStream("/monsters/archer.png"));
-      BufferedImage wizardImage =
-          ImageIO.read(getClass().getResourceAsStream("/monsters/wizard.png"));
+      BufferedImage fighterImage = ImageIO.read(getClass().getResourceAsStream("/monsters/fighter.png"));
+      BufferedImage archerImage = ImageIO.read(getClass().getResourceAsStream("/monsters/archer.png"));
+      BufferedImage wizardImage = ImageIO.read(getClass().getResourceAsStream("/monsters/wizard.png"));
 
       drawImageWithText(
           g2, fighterImage, "Fighter", rightColumnX, itemsY, "Moves around and damages on contact");
@@ -457,9 +456,9 @@ public class Renderer {
 
     // Draw controls more compactly
     String[] controls = {
-      "● WASD/Arrow Keys - Move the hero",
-      "● Mouse Click - Check objects for runes",
-      "● ESC - Return to menu / Pause game"
+        "● WASD/Arrow Keys - Move the hero",
+        "● Mouse Click - Check objects for runes",
+        "● ESC - Return to menu / Pause game"
     };
     for (int i = 0; i < controls.length; i++) {
       g2.drawString(controls[i], leftColumnX, bottomSectionY + 25 + (i * 20));
@@ -467,9 +466,9 @@ public class Renderer {
 
     // Draw tips more compactly
     String[] tips = {
-      "● Stay close to objects to check them",
-      "● Watch for Wizard's rune teleports",
-      "● Keep track of checked objects"
+        "● Stay close to objects to check them",
+        "● Watch for Wizard's rune teleports",
+        "● Keep track of checked objects"
     };
     for (int i = 0; i < tips.length; i++) {
       g2.drawString(tips[i], rightColumnX, bottomSectionY + 25 + (i * 20));
@@ -567,8 +566,8 @@ public class Renderer {
           x + buttonSize - padding - lineWidth, y + padding, lineWidth, buttonSize - 2 * padding);
     } else {
       // Draw play symbol (triangle)
-      int[] xPoints = {x + padding, x + buttonSize - padding, x + padding};
-      int[] yPoints = {y + padding, y + buttonSize / 2, y + buttonSize - padding};
+      int[] xPoints = { x + padding, x + buttonSize - padding, x + padding };
+      int[] yPoints = { y + padding, y + buttonSize / 2, y + buttonSize - padding };
       g2.fillPolygon(xPoints, yPoints, 3);
     }
   }
@@ -629,9 +628,8 @@ public class Renderer {
     Color lightColor = getHallLightColor(gameState.getCurrentHall());
 
     // Draw panel background with gradient
-    GradientPaint woodGradient =
-        new GradientPaint(
-            panelX, panelY, darkColor, panelX + panelWidth, panelY + panelHeight, lightColor);
+    GradientPaint woodGradient = new GradientPaint(
+        panelX, panelY, darkColor, panelX + panelWidth, panelY + panelHeight, lightColor);
     g2.setPaint(woodGradient);
     g2.fillRect(panelX, panelY, panelWidth, panelHeight);
 
@@ -674,9 +672,8 @@ public class Renderer {
       int heartSize = 30;
       int heartY = panelY + 105;
       int heartSpacing = 5;
-      int totalHeartsWidth =
-          (heartSize * gameState.getHero().getMaxHealth())
-              + (heartSpacing * (gameState.getHero().getMaxHealth() - 1));
+      int totalHeartsWidth = (heartSize * gameState.getHero().getMaxHealth())
+          + (heartSpacing * (gameState.getHero().getMaxHealth() - 1));
       int heartsStartX = panelX + (panelWidth - totalHeartsWidth) / 2;
 
       // Draw all heart containers (grayed out)
@@ -710,11 +707,11 @@ public class Renderer {
 
     // Draw the three slots for storable enchantments
     Enchantment.Type[] storableTypes = {
-      Enchantment.Type.REVEAL, Enchantment.Type.CLOAK_OF_PROTECTION, Enchantment.Type.LURING_GEM
+        Enchantment.Type.REVEAL, Enchantment.Type.CLOAK_OF_PROTECTION, Enchantment.Type.LURING_GEM
     };
 
     // Define keystroke labels for each enchantment type
-    String[] keyLabels = {"R", "P", "B"};
+    String[] keyLabels = { "R", "P", "B" };
 
     for (int i = 0; i < storableTypes.length; i++) {
       int slotX = slotsStartX + i * (slotSize + slotSpacing);
@@ -732,13 +729,12 @@ public class Renderer {
       // Draw enchantment image if we have any
       if (count > 0) {
         try {
-          String imagePath =
-              switch (storableTypes[i]) {
-                case REVEAL -> "/enchantments/reveal.png";
-                case CLOAK_OF_PROTECTION -> "/enchantments/cloak.png";
-                case LURING_GEM -> "/enchantments/luring_gem.png";
-                default -> null;
-              };
+          String imagePath = switch (storableTypes[i]) {
+            case REVEAL -> "/enchantments/reveal.png";
+            case CLOAK_OF_PROTECTION -> "/enchantments/cloak.png";
+            case LURING_GEM -> "/enchantments/luring_gem.png";
+            default -> null;
+          };
           if (imagePath != null) {
             BufferedImage enchImage = ImageIO.read(getClass().getResourceAsStream(imagePath));
             g2.drawImage(enchImage, slotX, slotsY, slotSize, slotSize, null);
@@ -778,22 +774,57 @@ public class Renderer {
       int alpha = (int) (180 * (1.0 - progress)); // Fade from 180 to 0
 
       // Create a radial gradient for smooth circular effect
-      RadialGradientPaint gradient =
-          new RadialGradientPaint(
-              centerX,
-              centerY,
-              radius,
-              new float[] {0.0f, 0.7f, 1.0f},
-              new Color[] {
-                new Color(255, 255, 100, alpha), // Center: yellow
-                new Color(255, 255, 100, alpha / 2), // Middle: semi-transparent
-                new Color(255, 255, 100, 0) // Edge: fully transparent
-              });
+      RadialGradientPaint gradient = new RadialGradientPaint(
+          centerX,
+          centerY,
+          radius,
+          new float[] { 0.0f, 0.7f, 1.0f },
+          new Color[] {
+              new Color(255, 255, 100, alpha), // Center: yellow
+              new Color(255, 255, 100, alpha / 2), // Middle: semi-transparent
+              new Color(255, 255, 100, 0) // Edge: fully transparent
+          });
 
       // Draw the circular reveal effect
       g2.setPaint(gradient);
       g2.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
     }
+
+    // Draw save button at the bottom of the panel
+    int buttonHeight = 30;
+    int buttonWidth = panelWidth - 20;
+    int buttonX = panelX + 10;
+    int buttonY = panelY + panelHeight - buttonHeight - 10;
+
+    // Draw button background
+    g2.setColor(WOOD_DARK);
+    g2.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+    g2.setColor(WOOD_LIGHT);
+    g2.setStroke(new BasicStroke(2));
+    g2.drawRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+    // Draw button text
+    g2.setColor(TEXT_COLOR);
+    g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+    String saveText = "Save Game";
+    int saveWidth = g2.getFontMetrics().stringWidth(saveText);
+    g2.drawString(saveText, buttonX + (buttonWidth - saveWidth) / 2, buttonY + 20);
+  }
+
+  public boolean isWithinSaveButton(int mouseX, int mouseY) {
+    int panelMargin = 10;
+    int panelWidth = screenWidth / 5;
+    int panelX = screenWidth - panelWidth - panelMargin;
+    int panelHeight = screenHeight - 2 * panelMargin;
+    int panelY = panelMargin;
+
+    int buttonHeight = 30;
+    int buttonWidth = panelWidth - 20;
+    int buttonX = panelX + 10;
+    int buttonY = panelY + panelHeight - buttonHeight - 10;
+
+    return mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
+        mouseY >= buttonY && mouseY <= buttonY + buttonHeight;
   }
 
   private void drawGameOverScreen(Graphics2D g2) {
@@ -890,17 +921,16 @@ public class Renderer {
       int glowY = currentY + (tileSize - glowSize) / 2;
 
       // Create radial gradient for glow with fade
-      RadialGradientPaint glow =
-          new RadialGradientPaint(
-              currentX + tileSize / 2,
-              currentY + tileSize / 2,
-              glowSize / 2,
-              new float[] {0.0f, 0.5f, 1.0f},
-              new Color[] {
-                new Color(1f, 0.8f, 0.2f, 0.4f * glowIntensity * fadeAlpha), // Gold
-                new Color(1f, 0.3f, 0.1f, 0.2f * glowIntensity * fadeAlpha), // Red
-                new Color(1f, 1f, 1f, 0f) // Transparent
-              });
+      RadialGradientPaint glow = new RadialGradientPaint(
+          currentX + tileSize / 2,
+          currentY + tileSize / 2,
+          glowSize / 2,
+          new float[] { 0.0f, 0.5f, 1.0f },
+          new Color[] {
+              new Color(1f, 0.8f, 0.2f, 0.4f * glowIntensity * fadeAlpha), // Gold
+              new Color(1f, 0.3f, 0.1f, 0.2f * glowIntensity * fadeAlpha), // Red
+              new Color(1f, 1f, 1f, 0f) // Transparent
+          });
 
       // Draw the glow
       g2.setPaint(glow);
@@ -909,8 +939,7 @@ public class Renderer {
       // Draw the gem image with fade
       if (gemImage != null) {
         // Set alpha composite for fading
-        AlphaComposite alphaComposite =
-            AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fadeAlpha);
+        AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fadeAlpha);
         g2.setComposite(alphaComposite);
 
         g2.drawImage(gemImage, currentX, currentY, tileSize, tileSize, null);
@@ -930,5 +959,92 @@ public class Renderer {
         g2.setComposite(AlphaComposite.SrcOver);
       }
     }
+  }
+
+  private void drawLoadScreen(Graphics2D g2) {
+    // Draw dark background
+    g2.setColor(BACKGROUND_DARK);
+    g2.fillRect(0, 0, screenWidth, screenHeight);
+
+    // Draw wooden panel
+    int margin = 40;
+    int panelWidth = screenWidth - 2 * margin;
+    int panelHeight = screenHeight - 2 * margin;
+
+    GradientPaint woodGradient = new GradientPaint(
+        margin, margin, WOOD_DARK, margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
+    g2.setPaint(woodGradient);
+    g2.fillRect(margin, margin, panelWidth, panelHeight);
+
+    g2.setColor(WOOD_DARK);
+    g2.setStroke(new BasicStroke(4));
+    g2.drawRect(margin, margin, panelWidth, panelHeight);
+
+    // Draw title
+    g2.setFont(new Font("Monospaced", Font.BOLD, 40));
+    String title = "LOAD GAME";
+    int titleWidth = g2.getFontMetrics().stringWidth(title);
+    g2.setColor(TEXT_COLOR);
+    g2.drawString(title, screenWidth / 2 - titleWidth / 2, margin + 60);
+
+    // Get list of save files
+    java.util.List<String> saves = domain.controller.SaveLoadManager.getAvailableSaves();
+
+    if (saves.isEmpty()) {
+      // Show message if no saves found
+      g2.setFont(new Font("Monospaced", Font.BOLD, 20));
+      String noSavesText = "No saved games found";
+      int textWidth = g2.getFontMetrics().stringWidth(noSavesText);
+      g2.drawString(noSavesText, screenWidth / 2 - textWidth / 2, screenHeight / 2);
+    } else {
+      // Draw save files list
+      g2.setFont(new Font("Monospaced", Font.BOLD, 20));
+      int startY = margin + 120;
+      int spacing = 40;
+
+      for (int i = 0; i < saves.size(); i++) {
+        String saveFile = saves.get(i);
+        // Remove .ser extension for display
+        saveFile = saveFile.replace(".ser", "");
+
+        if (i == selectedSaveIndex) {
+          g2.setColor(SELECTED_COLOR);
+          String text = "[ " + saveFile + " ]";
+          int textWidth = g2.getFontMetrics().stringWidth(text);
+          g2.drawString(text, screenWidth / 2 - textWidth / 2, startY + i * spacing);
+        } else {
+          g2.setColor(UNSELECTED_COLOR);
+          int textWidth = g2.getFontMetrics().stringWidth(saveFile);
+          g2.drawString(saveFile, screenWidth / 2 - textWidth / 2, startY + i * spacing);
+        }
+      }
+    }
+
+    // Draw return instruction at bottom
+    g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+    String returnText = "Press ESC to return to menu";
+    int returnWidth = g2.getFontMetrics().stringWidth(returnText);
+    g2.drawString(returnText, screenWidth / 2 - returnWidth / 2, screenHeight - margin - 20);
+  }
+
+  private int selectedSaveIndex = 0;
+
+  public void updateLoadScreenSelection(boolean up) {
+    java.util.List<String> saves = domain.controller.SaveLoadManager.getAvailableSaves();
+    if (!saves.isEmpty()) {
+      if (up) {
+        selectedSaveIndex = (selectedSaveIndex - 1 + saves.size()) % saves.size();
+      } else {
+        selectedSaveIndex = (selectedSaveIndex + 1) % saves.size();
+      }
+    }
+  }
+
+  public String getSelectedSaveFile() {
+    java.util.List<String> saves = domain.controller.SaveLoadManager.getAvailableSaves();
+    if (!saves.isEmpty() && selectedSaveIndex >= 0 && selectedSaveIndex < saves.size()) {
+      return saves.get(selectedSaveIndex);
+    }
+    return null;
   }
 }

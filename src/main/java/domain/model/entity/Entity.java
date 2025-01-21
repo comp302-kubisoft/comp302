@@ -18,7 +18,7 @@ public class Entity {
   protected int speed;
 
   /** Entity's sprite image */
-  public BufferedImage left1, left2, right1, right2, up1, up2, down1, down2;
+  public transient BufferedImage left1, left2, right1, right2, up1, up2, down1, down2;
 
   /** Current facing direction ("up", "down", "left", "right") */
   protected String direction;

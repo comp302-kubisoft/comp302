@@ -1,9 +1,10 @@
 package domain.model.entity;
 
 import domain.model.GameState;
+import java.io.Serializable;
 
-public class BadSituationWizardStrategy implements WizardStrategy {
-
+public class BadSituationWizardStrategy implements WizardStrategy, Serializable {
+    private static final long serialVersionUID = 1L;
     private boolean hasMovedHero = false;
     private static final long EXISTENCE_DURATION = 2000; // 2 seconds after teleporting
     private static final long TELEPORT_DELAY = 1000; // 1 second delay before teleporting
