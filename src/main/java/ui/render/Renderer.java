@@ -8,12 +8,16 @@ import domain.model.entity.Monster;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.RadialGradientPaint;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import ui.main.GamePanel;
@@ -80,6 +84,59 @@ public class Renderer {
   }
 
   private int selectedObjectIndex = -1; // -1 means no selection
+
+  private String warningMessage = null;
+  private long warningStartTime = 0;
+  private static final long WARNING_DURATION = 5000; // 5 seconds
+
+  private int helpPageNumber = 1;
+  private static final int TOTAL_HELP_PAGES = 2;
+
+  private List<Particle> victoryParticles = new ArrayList<>();
+  private Random random = new Random();
+  private long victoryStartTime = 0;
+
+  private class Particle {
+    float x, y;
+    float speedX, speedY;
+    float size;
+    Color color;
+    float alpha = 1.0f;
+
+    Particle() {
+      reset();
+    }
+
+    void reset() {
+      x = random.nextFloat() * screenWidth;
+      y = random.nextFloat() * screenHeight;
+      speedX = (random.nextFloat() - 0.5f) * 4;
+      speedY = -2 - random.nextFloat() * 2;
+      size = 5 + random.nextFloat() * 15;
+      
+      // Festive colors
+      Color[] colors = {
+        new Color(255, 215, 0),  // Gold
+        new Color(255, 100, 100), // Light red
+        new Color(100, 255, 100), // Light green
+        new Color(100, 100, 255), // Light blue
+        new Color(255, 180, 0)    // Orange
+      };
+      color = colors[random.nextInt(colors.length)];
+      alpha = 1.0f;
+    }
+
+    void update() {
+      x += speedX;
+      y += speedY;
+      speedY += 0.05f; // Gravity
+      alpha -= 0.01f;
+
+      if (alpha < 0 || y > screenHeight) {
+        reset();
+      }
+    }
+  }
 
   public Renderer(
       GameState gameState, int tileSize, int screenWidth, int screenHeight, GamePanel gamePanel) {
@@ -169,9 +226,13 @@ public class Renderer {
         drawCrossButton(g2);
 
         drawLuringGem(g2);
+
+        // Draw warning message on top if active
+        drawWarningMessage(g2);
         break;
       case BUILD:
         drawBuildMode(g2);
+        drawWarningMessage(g2);
         break;
     }
   }
@@ -320,7 +381,43 @@ public class Renderer {
     drawCrossButton(g2);
   }
 
+  public void updateHelpPage(boolean right) {
+    if (right) {
+      helpPageNumber = Math.min(helpPageNumber + 1, TOTAL_HELP_PAGES);
+    } else {
+      helpPageNumber = Math.max(helpPageNumber - 1, 1);
+    }
+  }
+
   private void drawHelpScreen(Graphics2D g2) {
+    if (helpPageNumber == 1) {
+      drawHelpPageOne(g2);
+    } else {
+      drawHelpPageTwo(g2);
+    }
+    
+    // Draw page indicator in bottom right corner
+    g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+    String pageText = "Page " + helpPageNumber + "/" + TOTAL_HELP_PAGES;
+    String navigationText = "← →: Change Page  ESC: Return";
+    
+    int margin = 40;  // Using same margin as wooden panel
+    FontMetrics fm = g2.getFontMetrics();
+    
+    // Draw page number in bottom right
+    g2.setColor(TEXT_COLOR);
+    g2.drawString(pageText, 
+                 screenWidth - margin - fm.stringWidth(pageText), 
+                 screenHeight - margin - 20);
+    
+    // Keep navigation text centered at bottom
+    int navWidth = fm.stringWidth(navigationText);
+    g2.drawString(navigationText, 
+                 screenWidth / 2 - navWidth / 2, 
+                 screenHeight - margin - 20);
+  }
+
+  private void drawHelpPageOne(Graphics2D g2) {
     // Draw dark background
     g2.setColor(BACKGROUND_DARK);
     g2.fillRect(0, 0, screenWidth, screenHeight);
@@ -473,12 +570,83 @@ public class Renderer {
     for (int i = 0; i < tips.length; i++) {
       g2.drawString(tips[i], rightColumnX, bottomSectionY + 25 + (i * 20));
     }
+  }
 
-    // Draw return instruction at bottom
-    g2.setFont(new Font("Monospaced", Font.BOLD, 16));
-    String returnText = "Press ESC to return to menu";
-    int returnWidth = g2.getFontMetrics().stringWidth(returnText);
-    g2.drawString(returnText, screenWidth / 2 - returnWidth / 2, screenHeight - margin - 20);
+  private void drawHelpPageTwo(Graphics2D g2) {
+    // Draw background
+    g2.setColor(BACKGROUND_DARK);
+    g2.fillRect(0, 0, screenWidth, screenHeight);
+
+    // Draw wooden panel
+    int margin = 40;
+    int panelWidth = screenWidth - 2 * margin;
+    int panelHeight = screenHeight - 2 * margin;
+
+    GradientPaint woodGradient = new GradientPaint(
+        margin, margin, WOOD_DARK, margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
+    g2.setPaint(woodGradient);
+    g2.fillRect(margin, margin, panelWidth, panelHeight);
+
+    g2.setColor(WOOD_DARK);
+    g2.setStroke(new BasicStroke(4));
+    g2.drawRect(margin, margin, panelWidth, panelHeight);
+
+    // Draw title
+    g2.setFont(new Font("Monospaced", Font.BOLD, 40));
+    String title = "ENCHANTMENTS";
+    int titleWidth = g2.getFontMetrics().stringWidth(title);
+    g2.setColor(TEXT_COLOR);
+    g2.drawString(title, screenWidth / 2 - titleWidth / 2, margin + 60);
+
+    try {
+      int iconSize = 48; // Slightly larger icons
+      int startY = margin + 120;
+      int lineHeight = 80; // More space between items
+      int descriptionX = margin + 100;
+      
+      // Extra Time Enchantment
+      BufferedImage extraTimeImg = ImageIO.read(getClass().getResourceAsStream("/enchantments/extra_time.png"));
+      g2.drawImage(extraTimeImg, margin + 40, startY, iconSize, iconSize, null);
+      g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+      g2.drawString("Extra Time", descriptionX, startY + 20);
+      g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+      g2.drawString("Automatic use: Adds 10 seconds to remaining time", descriptionX, startY + 40);
+
+      // Reveal Enchantment
+      BufferedImage revealImg = ImageIO.read(getClass().getResourceAsStream("/enchantments/reveal.png"));
+      g2.drawImage(revealImg, margin + 40, startY + lineHeight, iconSize, iconSize, null);
+      g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+      g2.drawString("Reveal (R)", descriptionX, startY + lineHeight + 20);
+      g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+      g2.drawString("Press R to reveal which object contains the rune", descriptionX, startY + lineHeight + 40);
+
+      // Cloak Enchantment
+      BufferedImage cloakImg = ImageIO.read(getClass().getResourceAsStream("/enchantments/cloak.png"));
+      g2.drawImage(cloakImg, margin + 40, startY + lineHeight * 2, iconSize, iconSize, null);
+      g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+      g2.drawString("Cloak of Protection (P)", descriptionX, startY + lineHeight * 2 + 20);
+      g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+      g2.drawString("Press P for temporary protection from archer attacks", descriptionX, startY + lineHeight * 2 + 40);
+
+      // Luring Gem
+      BufferedImage gemImg = ImageIO.read(getClass().getResourceAsStream("/enchantments/luring_gem.png"));
+      g2.drawImage(gemImg, margin + 40, startY + lineHeight * 3, iconSize, iconSize, null);
+      g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+      g2.drawString("Luring Gem (B)", descriptionX, startY + lineHeight * 3 + 20);
+      g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+      g2.drawString("Press B then direction key to throw gem that attracts fighters", descriptionX, startY + lineHeight * 3 + 40);
+
+      // Extra Life
+      BufferedImage lifeImg = ImageIO.read(getClass().getResourceAsStream("/enchantments/extra_life.png"));
+      g2.drawImage(lifeImg, margin + 40, startY + lineHeight * 4, iconSize, iconSize, null);
+      g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+      g2.drawString("Extra Life", descriptionX, startY + lineHeight * 4 + 20);
+      g2.setFont(new Font("Monospaced", Font.PLAIN, 16));
+      g2.drawString("Automatic use: Instantly restores one heart", descriptionX, startY + lineHeight * 4 + 40);
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   // Helper method to draw section headers
@@ -848,29 +1016,84 @@ public class Renderer {
   }
 
   private void drawVictoryScreen(Graphics2D g2) {
-    // Draw dark overlay with golden tint
-    g2.setColor(new Color(0, 0, 0, 200));
+    // Initialize particles if first time
+    if (victoryParticles.isEmpty()) {
+      victoryStartTime = System.currentTimeMillis();
+      for (int i = 0; i < 100; i++) {
+        victoryParticles.add(new Particle());
+      }
+    }
+
+    // Draw dark background with radial gradient
+    RadialGradientPaint gradient = new RadialGradientPaint(
+        screenWidth / 2, screenHeight / 2, screenWidth / 2,
+        new float[]{0.0f, 1.0f},
+        new Color[]{new Color(30, 30, 60), new Color(10, 10, 20)}
+    );
+    g2.setPaint(gradient);
     g2.fillRect(0, 0, screenWidth, screenHeight);
 
-    // Draw "VICTORY!" text
-    g2.setColor(new Color(255, 215, 0)); // Gold color
-    g2.setFont(new Font("Monospaced", Font.BOLD, 64));
+    // Update and draw particles
+    Composite originalComposite = g2.getComposite();
+    for (Particle p : victoryParticles) {
+      p.update();
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, p.alpha));
+      g2.setColor(p.color);
+      g2.fillOval((int)p.x, (int)p.y, (int)p.size, (int)p.size);
+    }
+    g2.setComposite(originalComposite);
+
+    // Calculate animation progress (0 to 1)
+    float progress = Math.min(1.0f, (System.currentTimeMillis() - victoryStartTime) / 1000.0f);
+
+    // Draw main victory text with glow effect
+    g2.setFont(new Font("Monospaced", Font.BOLD, 60));
     String victoryText = "VICTORY!";
-    int textWidth = g2.getFontMetrics().stringWidth(victoryText);
-    g2.drawString(victoryText, screenWidth / 2 - textWidth / 2, screenHeight / 2);
+    FontMetrics fm = g2.getFontMetrics();
+    int textWidth = fm.stringWidth(victoryText);
+    
+    // Draw glow
+    float glowSize = 20 * progress;
+    for (int i = 0; i < 360; i += 30) {
+      double angle = Math.toRadians(i);
+      float offsetX = (float)(Math.cos(angle) * glowSize);
+      float offsetY = (float)(Math.sin(angle) * glowSize);
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+      g2.setColor(Color.YELLOW);
+      g2.drawString(victoryText, 
+        screenWidth/2 - textWidth/2 + offsetX, 
+        screenHeight/3 + offsetY);
+    }
 
-    // Draw congratulatory message
-    g2.setColor(TEXT_COLOR);
+    // Draw main text
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+    g2.setColor(Color.YELLOW);
+    g2.drawString(victoryText, screenWidth/2 - textWidth/2, screenHeight/3);
+
+    // Draw congratulatory message with fade-in effect
     g2.setFont(new Font("Monospaced", Font.BOLD, 24));
-    String congratsText = "You have found all the mystical runes!";
-    textWidth = g2.getFontMetrics().stringWidth(congratsText);
-    g2.drawString(congratsText, screenWidth / 2 - textWidth / 2, screenHeight / 2 + 60);
+    String[] messages = {
+        "Congratulations!",
+        "You have conquered all four mystical halls",
+        "and mastered the ancient challenges.",
+        "",
+        "Press ESC to return to menu"
+    };
 
-    // Draw hint text
-    g2.setFont(new Font("Monospaced", Font.BOLD, 16));
-    String hintText = "Press ESC to return to menu";
-    textWidth = g2.getFontMetrics().stringWidth(hintText);
-    g2.drawString(hintText, screenWidth / 2 - textWidth / 2, screenHeight / 2 + 120);
+    g2.setColor(Color.WHITE);
+    for (int i = 0; i < messages.length; i++) {
+      float messageProgress = Math.max(0, Math.min(1, (progress - 0.3f - i * 0.2f) * 2));
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, messageProgress));
+      
+      int messageWidth = g2.getFontMetrics().stringWidth(messages[i]);
+      int y = screenHeight/2 + i * 40;
+      
+      // Add subtle floating animation
+      float offset = (float)Math.sin((System.currentTimeMillis() + i * 500) / 1000.0) * 5;
+      g2.drawString(messages[i], screenWidth/2 - messageWidth/2, y + offset);
+    }
+
+    g2.setComposite(originalComposite);
   }
 
   /** Sets the game state reference. Used when resetting the game state. */
@@ -1046,5 +1269,56 @@ public class Renderer {
       return saves.get(selectedSaveIndex);
     }
     return null;
+  }
+
+  public void showWarningMessage(String message) {
+    this.warningMessage = message;
+    this.warningStartTime = System.currentTimeMillis();
+  }
+
+  private void drawWarningMessage(Graphics2D g2) {
+    if (warningMessage != null) {
+      long currentTime = System.currentTimeMillis();
+      if (currentTime - warningStartTime > WARNING_DURATION) {
+        warningMessage = null;
+        return;
+      }
+
+      // Calculate fade out in last second
+      float alpha = 1.0f;
+      if (currentTime - warningStartTime > WARNING_DURATION - 1000) {
+        alpha = (WARNING_DURATION - (currentTime - warningStartTime)) / 1000.0f;
+      }
+
+      // Save original composite
+      Composite originalComposite = g2.getComposite();
+      
+      // Draw semi-transparent background with larger area
+      g2.setColor(new Color(0, 0, 0, 0.8f * alpha));
+      int messageY = screenHeight / 3; // Moved up for better visibility
+      int padding = 30;
+      g2.setFont(new Font("Monospaced", Font.BOLD, 24)); // Increased font size
+      FontMetrics fm = g2.getFontMetrics();
+      int messageWidth = fm.stringWidth(warningMessage) + padding * 2;
+      int messageHeight = fm.getHeight() + padding;
+      g2.fillRect((screenWidth - messageWidth) / 2, messageY - padding, 
+                 messageWidth, messageHeight);
+
+      // Draw message
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+      g2.setColor(new Color(255, 200, 200)); // Light red color for warning
+      g2.drawString(warningMessage, 
+                   (screenWidth - fm.stringWidth(warningMessage)) / 2, 
+                   messageY + fm.getAscent() - padding/2);
+
+      // Add a border to the message box
+      g2.setColor(new Color(255, 100, 100, (int)(255 * alpha))); // Red border
+      g2.setStroke(new BasicStroke(2.0f));
+      g2.drawRect((screenWidth - messageWidth) / 2, messageY - padding, 
+                 messageWidth, messageHeight);
+
+      // Restore original composite
+      g2.setComposite(originalComposite);
+    }
   }
 }

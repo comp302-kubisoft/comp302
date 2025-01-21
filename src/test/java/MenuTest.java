@@ -5,6 +5,7 @@ import domain.model.GameMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ui.menu.Menu;
+import ui.sound.SoundManager;
 
 public class MenuTest {
 
@@ -12,7 +13,7 @@ public class MenuTest {
 
     @BeforeEach
     void setUp() {
-        menu = new Menu();
+        menu = new Menu(SoundManager.getInstance());
     }
 
     @Test
