@@ -4,30 +4,17 @@
  * gems, runes found). Essentially, it encapsulates all essential data and coordinates about the
  * game world.
  *
- * Abstract Function:
- * Let H = the hero entity
- * Let M = the set of all monsters
- * Let O = the lists of placed objects by hall (each hall has a sub-list)
- * Let currentHall = an integer denoting which hall is currently active
- * Let runesFound = how many runes have been discovered so far
- * ... (and so on for other relevant fields)
+ * <p>Abstract Function: Let H = the hero entity Let M = the set of all monsters Let O = the lists
+ * of placed objects by hall (each hall has a sub-list) Let currentHall = an integer denoting which
+ * hall is currently active Let runesFound = how many runes have been discovered so far ... (and so
+ * on for other relevant fields)
  *
- * AF(GameState) = A conceptual mapping to:
- * (
- *   hero = H,
- *   monsters = M,
- *   hallObjects = O,
- *   currentHall = currentHall,
- *   runesFound = runesFound,
- *   ...
- * )
- * 
- * Representation Invariant:
- * - 0 ≤ currentHall < TOTAL_HALLS
- * - hallObjects has length = TOTAL_HALLS
- * - runesFound ≥ 0 and runesFound ≤ TOTAL_HALLS
- * - No two objects in the same hall occupy the exact same grid position
+ * <p>AF(GameState) = A conceptual mapping to: ( hero = H, monsters = M, hallObjects = O,
+ * currentHall = currentHall, runesFound = runesFound, ... )
  *
+ * <p>Representation Invariant: - 0 ≤ currentHall < TOTAL_HALLS - hallObjects has length =
+ * TOTAL_HALLS - runesFound ≥ 0 and runesFound ≤ TOTAL_HALLS - No two objects in the same hall
+ * occupy the exact same grid position
  */
 package domain.model;
 
@@ -35,10 +22,10 @@ import domain.model.entity.Enchantment;
 import domain.model.entity.Hero;
 import domain.model.entity.Monster;
 import java.awt.image.BufferedImage;
-import java.io.Serializable;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,12 +83,12 @@ public class GameState implements Serializable {
   private transient SoundManager soundManager;
 
   /**
-   * Represents an object placed in the game world. Contains both pixel
-   * coordinates and grid
+   * Represents an object placed in the game world. Contains both pixel coordinates and grid
    * positions for precise placement and collision detection.
    */
   public static class PlacedObject implements Serializable {
     private static final long serialVersionUID = 1L;
+
     /** The type identifier of the placed object */
     public final int type;
 
@@ -126,9 +113,9 @@ public class GameState implements Serializable {
     /**
      * Creates a new placed object with specified position and type.
      *
-     * @param type  The type identifier of the object
-     * @param x     Pixel X coordinate
-     * @param y     Pixel Y coordinate
+     * @param type The type identifier of the object
+     * @param x Pixel X coordinate
+     * @param y Pixel Y coordinate
      * @param gridX Grid X coordinate
      * @param gridY Grid Y coordinate
      */
@@ -150,7 +137,7 @@ public class GameState implements Serializable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
       in.defaultReadObject();
       hasRune = in.readBoolean();
-      enchantment = (Enchantment)in.readObject();
+      enchantment = (Enchantment) in.readObject();
     }
   }
 
@@ -189,10 +176,11 @@ public class GameState implements Serializable {
   private final java.util.Map<Enchantment.Type, Integer> enchantmentInventory;
 
   /** Types of enchantments that can be stored */
-  private static final Set<Enchantment.Type> STORABLE_ENCHANTMENTS = Set.of(
-      Enchantment.Type.REVEAL,
-      Enchantment.Type.CLOAK_OF_PROTECTION,
-      Enchantment.Type.LURING_GEM);
+  private static final Set<Enchantment.Type> STORABLE_ENCHANTMENTS =
+      Set.of(
+          Enchantment.Type.REVEAL,
+          Enchantment.Type.CLOAK_OF_PROTECTION,
+          Enchantment.Type.LURING_GEM);
 
   private transient BufferedImage luringGemImage;
   private float gemThrowProgress = 0f; // 0 to 1, for throw animation
@@ -200,7 +188,7 @@ public class GameState implements Serializable {
   private int gemTargetX, gemTargetY; // Target position for throw animation
   private static final float GEM_THROW_SPEED = 0.1f; // Adjust for faster/slower throws
 
-  private int maxScreenCol;  // Add these fields to store screen dimensions
+  private int maxScreenCol; // Add these fields to store screen dimensions
   private int maxScreenRow;
 
   /** Initializes a new game state with specified dimensions. */
@@ -259,13 +247,12 @@ public class GameState implements Serializable {
       for (int y = GAME_AREA_START; y <= GAME_AREA_END; y++) {
         if (isPositionEmpty(x, y)) {
           emptyPositions.add(
-              new int[] { x * tileManager.getTileSize(), y * tileManager.getTileSize() });
+              new int[] {x * tileManager.getTileSize(), y * tileManager.getTileSize()});
         }
       }
     }
 
-    if (emptyPositions.isEmpty())
-      return null;
+    if (emptyPositions.isEmpty()) return null;
     return emptyPositions.get(random.nextInt(emptyPositions.size()));
   }
 
@@ -274,19 +261,16 @@ public class GameState implements Serializable {
     // Check for hero
     int heroGridX = hero.getX() / tileSize;
     int heroGridY = hero.getY() / tileSize;
-    if (heroGridX == gridX && heroGridY == gridY)
-      return false;
+    if (heroGridX == gridX && heroGridY == gridY) return false;
 
     // Check for placed objects
-    if (isTileOccupied(gridX, gridY))
-      return false;
+    if (isTileOccupied(gridX, gridY)) return false;
 
     // Check for monsters
     for (Monster monster : monsters) {
       int monsterGridX = monster.getX() / tileSize;
       int monsterGridY = monster.getY() / tileSize;
-      if (monsterGridX == gridX && monsterGridY == gridY)
-        return false;
+      if (monsterGridX == gridX && monsterGridY == gridY) return false;
     }
 
     // Check for wall tiles
@@ -307,8 +291,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Updates monster states and handles their interactions with the hero. Should
-   * be called each game
+   * Updates monster states and handles their interactions with the hero. Should be called each game
    * update.
    */
   public void updateMonsters() {
@@ -317,16 +300,16 @@ public class GameState implements Serializable {
 
     // Create a copy of the list to avoid concurrent modification
     List<Monster> monstersToRemove = new ArrayList<>();
-    
-    synchronized(monsters) {
-        for (Monster monster : monsters) {
-            monster.update(tileManager, tileSize);
-            if (monster.shouldRemove()) {
-                monstersToRemove.add(monster);
-            }
+
+    synchronized (monsters) {
+      for (Monster monster : monsters) {
+        monster.update(tileManager, tileSize);
+        if (monster.shouldRemove()) {
+          monstersToRemove.add(monster);
         }
-        // Remove monsters after iteration
-        monsters.removeAll(monstersToRemove);
+      }
+      // Remove monsters after iteration
+      monsters.removeAll(monstersToRemove);
     }
 
     // Handle archer attacks
@@ -346,8 +329,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Checks if a given grid position is within the valid game area. The game area
-   * is defined by
+   * Checks if a given grid position is within the valid game area. The game area is defined by
    * GAME_AREA_START and GAME_AREA_END constants.
    *
    * @param gridX X coordinate to check
@@ -362,8 +344,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Checks if a tile at the given grid position is occupied by any placed object
-   * in the current
+   * Checks if a tile at the given grid position is occupied by any placed object in the current
    * hall.
    */
   public boolean isTileOccupied(int gridX, int gridY) {
@@ -376,8 +357,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Attempts to add a new object to the current hall. The object will only be
-   * placed if the
+   * Attempts to add a new object to the current hall. The object will only be placed if the
    * position is within the game area and the target tile is not already occupied.
    */
   public void addPlacedObject(int type, int x, int y, int gridX, int gridY) {
@@ -439,8 +419,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Assigns a rune to a random placed object in the current hall. Should be
-   * called when
+   * Assigns a rune to a random placed object in the current hall. Should be called when
    * transitioning from build to play mode.
    */
   public void assignRandomRune() {
@@ -461,12 +440,11 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Checks if the hero is adjacent to a given grid position. Adjacent means the
-   * hero is in a tile
+   * Checks if the hero is adjacent to a given grid position. Adjacent means the hero is in a tile
    * directly left, right, up, or down.
    *
-   * @param gridX    X coordinate to check
-   * @param gridY    Y coordinate to check
+   * @param gridX X coordinate to check
+   * @param gridY Y coordinate to check
    * @param tileSize Size of each tile in pixels
    * @return true if hero is adjacent, false otherwise
    */
@@ -483,8 +461,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Checks if the hero is on the transition tile. Only relevant if a rune has
-   * been found in the
+   * Checks if the hero is on the transition tile. Only relevant if a rune has been found in the
    * current hall.
    *
    * @return true if the hero is on the transition tile and a rune has been found
@@ -501,8 +478,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Handles the transition to the next hall or victory. Should be called when the
-   * hero is on the
+   * Handles the transition to the next hall or victory. Should be called when the hero is on the
    * transition tile.
    *
    * @return true if this triggered a victory condition
@@ -542,29 +518,20 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Checks if an object at the given position has a rune. Returns true and prints
-   * a message if a
+   * Checks if an object at the given position has a rune. Returns true and prints a message if a
    * rune is found.
    *
    * @param gridX X coordinate to check
    * @param gridY Y coordinate to check
    * @return true if a rune was found, false otherwise
-   * 
-   *         Requires:
-   *         - gridX and gridY must be valid grid coordinates within the game area
-   *         - currentHall must be initialized and valid (0 to TOTAL_HALLS-1)
-   *         - hallObjects must be initialized for the current hall
-   * 
-   *         Modifies:
-   *         - runesFound (increments if rune is found)
-   *         - runeFoundInCurrentHall (set to true if rune is found)
-   *         - tileManager.mapTileNum[9][18] (changes to 3 if rune is found)
-   * 
-   *         Effects:
-   *         - Returns true if a rune is found at the specified position
-   *         - Returns false if no rune is found or no object exists at position
-   *         - Plays a sound effect (SFX 1) if rune is found
-   *         - Opens the door (changes tile) if rune is found
+   *     <p>Requires: - gridX and gridY must be valid grid coordinates within the game area -
+   *     currentHall must be initialized and valid (0 to TOTAL_HALLS-1) - hallObjects must be
+   *     initialized for the current hall
+   *     <p>Modifies: - runesFound (increments if rune is found) - runeFoundInCurrentHall (set to
+   *     true if rune is found) - tileManager.mapTileNum[9][18] (changes to 3 if rune is found)
+   *     <p>Effects: - Returns true if a rune is found at the specified position - Returns false if
+   *     no rune is found or no object exists at position - Plays a sound effect (SFX 1) if rune is
+   *     found - Opens the door (changes tile) if rune is found
    */
   public boolean checkForRune(int gridX, int gridY) {
     for (PlacedObject obj : hallObjects.get(currentHall)) {
@@ -598,8 +565,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Moves to the next hall. Returns true if there are more halls, false if we've
-   * reached the end.
+   * Moves to the next hall. Returns true if there are more halls, false if we've reached the end.
    */
   public boolean moveToNextHall() {
     if (currentHall < TOTAL_HALLS - 1) {
@@ -624,18 +590,14 @@ public class GameState implements Serializable {
     return runesFound;
   }
 
-  /**
-   * Resets the number of runes found to zero. Called when resetting the game
-   * state.
-   */
+  /** Resets the number of runes found to zero. Called when resetting the game state. */
   public void resetRunesFound() {
     runesFound = 0;
     runeFoundInCurrentHall = false;
   }
 
   /**
-   * Updates the pause duration for all monsters. Should be called when the game
-   * is unpaused.
+   * Updates the pause duration for all monsters. Should be called when the game is unpaused.
    *
    * @param pauseDuration The duration to add to each monster's pause time
    */
@@ -651,8 +613,7 @@ public class GameState implements Serializable {
    * @return true if time has run out, false otherwise
    */
   public boolean updateTimer() {
-    if (!timerActive)
-      return false;
+    if (!timerActive) return false;
 
     long currentTime = System.currentTimeMillis();
     long delta = currentTime - lastUpdateTime;
@@ -723,21 +684,20 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Updates enchantment states, spawning new ones and removing expired ones.
-   * Should be called each
+   * Updates enchantment states, spawning new ones and removing expired ones. Should be called each
    * game update.
    */
   public void updateEnchantments() {
     // Create a new list to store enchantments that should be removed
     List<Enchantment> enchantmentsToRemove = new ArrayList<>();
-    
+
     // First pass: identify enchantments that have expired
     for (Enchantment enchantment : enchantments) {
-        if (enchantment.hasExpired()) {
-            enchantmentsToRemove.add(enchantment);
-        }
+      if (enchantment.hasExpired()) {
+        enchantmentsToRemove.add(enchantment);
+      }
     }
-    
+
     // Second pass: remove the expired enchantments
     enchantments.removeAll(enchantmentsToRemove);
 
@@ -747,8 +707,8 @@ public class GameState implements Serializable {
     long effectiveLastSpawnTime = lastEnchantmentSpawnTime - pauseDuration;
 
     if (effectiveTime - effectiveLastSpawnTime >= ENCHANTMENT_SPAWN_INTERVAL) {
-        spawnRandomEnchantment();
-        lastEnchantmentSpawnTime = currentTime;
+      spawnRandomEnchantment();
+      lastEnchantmentSpawnTime = currentTime;
     }
   }
 
@@ -756,8 +716,7 @@ public class GameState implements Serializable {
   private void spawnRandomEnchantment() {
     // Get a random empty position
     int[] position = findRandomEmptyPosition();
-    if (position == null)
-      return;
+    if (position == null) return;
 
     // Choose a random enchantment type
     Enchantment.Type[] types = Enchantment.Type.values();
@@ -795,8 +754,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Called when the game is unpaused. Updates pause duration for all
-   * time-sensitive entities.
+   * Called when the game is unpaused. Updates pause duration for all time-sensitive entities.
    *
    * @param pauseDuration The duration of the pause in milliseconds
    */
@@ -822,8 +780,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Resets the enchantment spawn timer. Called when transitioning between halls
-   * or starting the
+   * Resets the enchantment spawn timer. Called when transitioning between halls or starting the
    * game.
    */
   public void resetEnchantmentSpawnTimer() {
@@ -833,8 +790,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Handles the collection of an enchantment. Immediate effect enchantments are
-   * applied directly,
+   * Handles the collection of an enchantment. Immediate effect enchantments are applied directly,
    * while storable enchantments are added to inventory.
    *
    * @param enchantment The enchantment that was collected
@@ -872,10 +828,7 @@ public class GameState implements Serializable {
     }
   }
 
-  /**
-   * Adds a reveal effect to the game. Should be called when a reveal enchantment
-   * is used.
-   */
+  /** Adds a reveal effect to the game. Should be called when a reveal enchantment is used. */
   public void useRevealEnchantment() {
     // Check if we have a reveal enchantment in inventory
     if (enchantmentInventory.getOrDefault(Enchantment.Type.REVEAL, 0) > 0) {
@@ -917,8 +870,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Gets the starting X coordinate of the reveal area. Should be called during
-   * game updates.
+   * Gets the starting X coordinate of the reveal area. Should be called during game updates.
    *
    * @return The starting X coordinate of the reveal area
    */
@@ -927,8 +879,7 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Gets the starting Y coordinate of the reveal area. Should be called during
-   * game updates.
+   * Gets the starting Y coordinate of the reveal area. Should be called during game updates.
    *
    * @return The starting Y coordinate of the reveal area
    */
@@ -955,10 +906,7 @@ public class GameState implements Serializable {
     }
   }
 
-  /**
-   * Adds a cloak effect to the game. Should be called when a cloak enchantment is
-   * used.
-   */
+  /** Adds a cloak effect to the game. Should be called when a cloak enchantment is used. */
   public void useCloakEnchantment() {
     // Check if we have a cloak enchantment in inventory
     if (enchantmentInventory.getOrDefault(Enchantment.Type.CLOAK_OF_PROTECTION, 0) > 0) {
@@ -1008,8 +956,7 @@ public class GameState implements Serializable {
    * @return Remaining time in milliseconds, or 0 if not active
    */
   public long getCloakRemainingTime() {
-    if (!cloakEffectActive)
-      return 0;
+    if (!cloakEffectActive) return 0;
     long currentTime = System.currentTimeMillis() - pauseDuration;
     long remainingTime = CLOAK_EFFECT_DURATION - (currentTime - cloakEffectStartTime);
     return Math.max(0, remainingTime);
@@ -1017,8 +964,7 @@ public class GameState implements Serializable {
 
   /** Gets the progress of the reveal effect from 0.0 (start) to 1.0 (end) */
   public float getRevealProgress() {
-    if (!revealEffectActive)
-      return 1.0f;
+    if (!revealEffectActive) return 1.0f;
     long currentTime = System.currentTimeMillis() - pauseDuration;
     float progress = (float) (currentTime - revealEffectStartTime) / REVEAL_EFFECT_DURATION;
     return Math.min(1.0f, Math.max(0.0f, progress));
@@ -1040,32 +986,20 @@ public class GameState implements Serializable {
   }
 
   /**
-   * Throws a luring gem in the specified direction from the hero's current
-   * position.
-   * The gem acts as a distraction that attracts monsters to its location for a
-   * limited time.
-   * The gem will travel a fixed distance (GEM_THROW_DISTANCE) in the specified
-   * direction,
-   * staying within game boundaries.
+   * Throws a luring gem in the specified direction from the hero's current position. The gem acts
+   * as a distraction that attracts monsters to its location for a limited time. The gem will travel
+   * a fixed distance (GEM_THROW_DISTANCE) in the specified direction, staying within game
+   * boundaries.
    *
-   * Requires:
-   * - direction must be one of: "up", "down", "left", "right"
-   * - hero must exist in the game state
-   * - player must have at least one luring gem in inventory to throw
+   * <p>Requires: - direction must be one of: "up", "down", "left", "right" - hero must exist in the
+   * game state - player must have at least one luring gem in inventory to throw
    *
-   * Modifies:
-   * - enchantmentInventory (reduces luring gem count)
-   * - gem position (gemX, gemY)
-   * - gem state (luringGemActive, gemStartTime)
+   * <p>Modifies: - enchantmentInventory (reduces luring gem count) - gem position (gemX, gemY) -
+   * gem state (luringGemActive, gemStartTime)
    *
-   * Effects:
-   * - If player has a luring gem:
-   * > Calculates target position GEM_THROW_DISTANCE tiles away
-   * > Ensures position stays within game boundaries
-   * > Activates the gem effect
-   * > Removes one gem from inventory
-   * - If no gem in inventory:
-   * > No changes occur
+   * <p>Effects: - If player has a luring gem: > Calculates target position GEM_THROW_DISTANCE tiles
+   * away > Ensures position stays within game boundaries > Activates the gem effect > Removes one
+   * gem from inventory - If no gem in inventory: > No changes occur
    */
   public void throwLuringGem(String direction) {
     if (enchantmentInventory.getOrDefault(Enchantment.Type.LURING_GEM, 0) > 0) {
@@ -1090,10 +1024,10 @@ public class GameState implements Serializable {
 
       // Adjust for boundaries and objects
       while ((targetX < GAME_AREA_START
-          || targetX > GAME_AREA_END
-          || targetY < GAME_AREA_START
-          || targetY > GAME_AREA_END
-          || isTileOccupied(targetX, targetY))
+              || targetX > GAME_AREA_END
+              || targetY < GAME_AREA_START
+              || targetY > GAME_AREA_END
+              || isTileOccupied(targetX, targetY))
           && (targetX != startX || targetY != startY)) {
 
         switch (direction) {
@@ -1138,8 +1072,7 @@ public class GameState implements Serializable {
       // Update throw animation
       if (gemThrowProgress < 1.0f) {
         gemThrowProgress += GEM_THROW_SPEED;
-        if (gemThrowProgress > 1.0f)
-          gemThrowProgress = 1.0f;
+        if (gemThrowProgress > 1.0f) gemThrowProgress = 1.0f;
       }
 
       // Check duration
@@ -1177,8 +1110,7 @@ public class GameState implements Serializable {
   private static final long GEM_FADE_DURATION = 2000; // Last 2 seconds fade out
 
   public float getGemFadeAlpha() {
-    if (!luringGemActive)
-      return 0f;
+    if (!luringGemActive) return 0f;
     long currentTime = System.currentTimeMillis() - pauseDuration;
     long timeLeft = (gemStartTime + GEM_EFFECT_DURATION) - currentTime;
 
@@ -1234,43 +1166,43 @@ public class GameState implements Serializable {
 
   public void reinitialize(int tileSize, int maxScreenCol, int maxScreenRow) {
     if (tileSize <= 0 || maxScreenCol <= 0 || maxScreenRow <= 0) {
-        throw new IllegalArgumentException("Invalid initialization parameters");
+      throw new IllegalArgumentException("Invalid initialization parameters");
     }
-    
+
     this.tileSize = tileSize;
     this.maxScreenCol = maxScreenCol;
     this.maxScreenRow = maxScreenRow;
     // Only create new TileManager if it doesn't exist
     if (this.tileManager == null) {
-        this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
+      this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
     }
-    
+
     this.soundManager = SoundManager.getInstance();
 
     // Reinitialize hero
     if (hero != null) {
-        hero.loadImage();
-        hero.setGameState(this);
+      hero.loadImage();
+      hero.setGameState(this);
     }
 
     // Reinitialize monsters
     if (monsters != null) {
-        for (Monster monster : monsters) {
-            monster.loadImage();
-            monster.setGameState(this);
-            monster.setSoundManager(soundManager);
-            // Reset any necessary state
-            if (monster.getType() == Monster.Type.WIZARD) {
-                monster.initializeWizardBehavior();
-            }
-            // Ensure monster is in valid position
-            if (!isWithinGameArea(monster.getX()/tileSize, monster.getY()/tileSize)) {
-                int[] newPos = findRandomEmptyPosition();
-                if (newPos != null) {
-                    monster.setPosition(newPos[0], newPos[1]);
-                }
-            }
+      for (Monster monster : monsters) {
+        monster.loadImage();
+        monster.setGameState(this);
+        monster.setSoundManager(soundManager);
+        // Reset any necessary state
+        if (monster.getType() == Monster.Type.WIZARD) {
+          monster.initializeWizardBehavior();
         }
+        // Ensure monster is in valid position
+        if (!isWithinGameArea(monster.getX() / tileSize, monster.getY() / tileSize)) {
+          int[] newPos = findRandomEmptyPosition();
+          if (newPos != null) {
+            monster.setPosition(newPos[0], newPos[1]);
+          }
+        }
+      }
     }
 
     loadLuringGemImage();
@@ -1281,7 +1213,7 @@ public class GameState implements Serializable {
     return tileSize;
   }
 
-  private long gameTime;  // Track total game time
+  private long gameTime; // Track total game time
   private long lastPauseTime;
   private long totalPauseDuration;
 

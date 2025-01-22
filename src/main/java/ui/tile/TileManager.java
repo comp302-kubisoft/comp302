@@ -15,12 +15,12 @@ public class TileManager implements Serializable {
   private static final long serialVersionUID = 1L;
 
   // Door position constants
-  private static final int DOOR_X = 9;  // Door X position in grid
+  private static final int DOOR_X = 9; // Door X position in grid
   private static final int DOOR_Y = 16; // Door Y position in grid
-  
+
   // Door tile indices
-  private static final int CLOSED_DOOR_TILE = 2;  // Index for closed door tile
-  private static final int OPEN_DOOR_TILE = 3;    // Index for open door tile
+  private static final int CLOSED_DOOR_TILE = 2; // Index for closed door tile
+  private static final int OPEN_DOOR_TILE = 3; // Index for open door tile
 
   /** Size of each tile in pixels */
   private int tileSize;

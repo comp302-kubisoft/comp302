@@ -39,14 +39,13 @@ public class MouseHandler extends MouseAdapter {
   private final SoundManager soundManager;
 
   /**
-   * Creates a new MouseHandler with necessary references for build mode
-   * interaction.
+   * Creates a new MouseHandler with necessary references for build mode interaction.
    *
-   * @param renderer    Reference to the game renderer
-   * @param gameState   Reference to the game state
-   * @param tileSize    Size of each tile in pixels
+   * @param renderer Reference to the game renderer
+   * @param gameState Reference to the game state
+   * @param tileSize Size of each tile in pixels
    * @param screenWidth Total width of the game screen
-   * @param gamePanel   Reference to the game panel
+   * @param gamePanel Reference to the game panel
    */
   public MouseHandler(
       Renderer renderer, GameState gameState, int tileSize, int screenWidth, GamePanel gamePanel) {
@@ -61,10 +60,8 @@ public class MouseHandler extends MouseAdapter {
   }
 
   /**
-   * Handles mouse click events in both the build panel and game area. Determines
-   * if the click was
-   * in the build panel (for object selection) or in the game area (for object
-   * placement).
+   * Handles mouse click events in both the build panel and game area. Determines if the click was
+   * in the build panel (for object selection) or in the game area (for object placement).
    *
    * @param e The mouse click event
    */
@@ -141,8 +138,7 @@ public class MouseHandler extends MouseAdapter {
   }
 
   /**
-   * Handles clicks in the build panel for object selection. Determines which
-   * object slot was
+   * Handles clicks in the build panel for object selection. Determines which object slot was
    * clicked and updates the selected object.
    *
    * @param x The x coordinate of the click
@@ -171,8 +167,7 @@ public class MouseHandler extends MouseAdapter {
   }
 
   /**
-   * Handles clicks in the game area for object placement. Places the selected
-   * object at the clicked
+   * Handles clicks in the game area for object placement. Places the selected object at the clicked
    * tile if the position is valid.
    *
    * @param x The x coordinate of the click
@@ -180,8 +175,7 @@ public class MouseHandler extends MouseAdapter {
    */
   private void handleGameAreaClick(int x, int y) {
     // Only handle clicks if an object is selected
-    if (renderer.getSelectedObjectIndex() == -1)
-      return;
+    if (renderer.getSelectedObjectIndex() == -1) return;
 
     // Convert click coordinates to grid position
     int gridX = x / tileSize;
@@ -195,8 +189,7 @@ public class MouseHandler extends MouseAdapter {
   }
 
   /**
-   * Handles mouse press events, specifically for right-click object removal in
-   * build mode.
+   * Handles mouse press events, specifically for right-click object removal in build mode.
    *
    * @param e The mouse press event
    */

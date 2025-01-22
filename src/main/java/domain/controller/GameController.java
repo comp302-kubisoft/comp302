@@ -8,7 +8,6 @@ import domain.model.GameMode;
 import domain.model.GameState;
 import domain.model.entity.Hero;
 import domain.model.entity.Monster;
-
 import java.io.Serializable;
 import java.util.Random;
 import ui.input.InputState;
@@ -58,35 +57,31 @@ public class GameController implements Serializable {
   }
 
   /**
-   * Reinitializes any transient fields after deserialization. Call this right
-   * after loading
-   * the GameController from file, supplying the new GamePanel and InputState
-   * references.
+   * Reinitializes any transient fields after deserialization. Call this right after loading the
+   * GameController from file, supplying the new GamePanel and InputState references.
    */
   public void reinitialize(GamePanel gamePanel, InputState inputState) {
     if (gamePanel == null || inputState == null) {
-        throw new IllegalArgumentException("GamePanel and InputState cannot be null");
+      throw new IllegalArgumentException("GamePanel and InputState cannot be null");
     }
-    
+
     this.gamePanel = gamePanel;
     this.inputState = inputState;
-    
+
     // Reset input state to clear any lingering inputs
     this.inputState.reset();
-    
+
     if (this.menu == null) {
-        this.menu = new Menu(SoundManager.getInstance());
+      this.menu = new Menu(SoundManager.getInstance());
     }
     if (gamePanel != null && gamePanel.getRenderer() != null) {
-        gamePanel.getRenderer().setMenu(menu);
+      gamePanel.getRenderer().setMenu(menu);
     }
 
     // Reinitialize transient fields in the GameState
     if (this.gameState != null) {
-        this.gameState.reinitialize(
-            gamePanel.tileSize,
-            gamePanel.maxScreenCol,
-            gamePanel.maxScreenRow);
+      this.gameState.reinitialize(
+          gamePanel.tileSize, gamePanel.maxScreenCol, gamePanel.maxScreenRow);
     }
 
     // Don't trigger monster spawn on load
@@ -98,8 +93,7 @@ public class GameController implements Serializable {
   }
 
   /**
-   * Updates the menu, help, and game over modes based on user input. Handles mode
-   * transitions and
+   * Updates the menu, help, and game over modes based on user input. Handles mode transitions and
    * input processing for menu navigation.
    */
   public void updateMenuOrHelpMode() {
@@ -155,8 +149,7 @@ public class GameController implements Serializable {
   }
 
   /**
-   * Updates the build mode state. Handles object placement, mode transitions, and
-   * build mode
+   * Updates the build mode state. Handles object placement, mode transitions, and build mode
    * specific logic.
    */
   public void updateBuildMode() {
@@ -189,9 +182,10 @@ public class GameController implements Serializable {
 
         if (objectCount < requiredObjects) {
           // Show warning message through renderer
-          gamePanel.getRenderer().showWarningMessage(
-              "Minimum " + requiredObjects + " objects required in " + getHallName(hall)
-          );
+          gamePanel
+              .getRenderer()
+              .showWarningMessage(
+                  "Minimum " + requiredObjects + " objects required in " + getHallName(hall));
           inputState.reset();
           return;
         }
@@ -212,21 +206,31 @@ public class GameController implements Serializable {
 
   private int getRequiredObjects(int hall) {
     switch (hall) {
-      case 0: return 6;  // Earth
-      case 1: return 9;  // Air
-      case 2: return 13; // Water
-      case 3: return 17; // Fire
-      default: return 0;
+      case 0:
+        return 6; // Earth
+      case 1:
+        return 9; // Air
+      case 2:
+        return 13; // Water
+      case 3:
+        return 17; // Fire
+      default:
+        return 0;
     }
   }
 
   private String getHallName(int hall) {
     switch (hall) {
-      case 0: return "Hall of Earth";
-      case 1: return "Hall of Air";
-      case 2: return "Hall of Water";
-      case 3: return "Hall of Fire";
-      default: return "Unknown Hall";
+      case 0:
+        return "Hall of Earth";
+      case 1:
+        return "Hall of Air";
+      case 2:
+        return "Hall of Water";
+      case 3:
+        return "Hall of Fire";
+      default:
+        return "Unknown Hall";
     }
   }
 
@@ -257,8 +261,7 @@ public class GameController implements Serializable {
   }
 
   /**
-   * Updates the play mode state. Handles hero movement, spawn position, monster
-   * spawning, and game
+   * Updates the play mode state. Handles hero movement, spawn position, monster spawning, and game
    * interactions during gameplay.
    */
   public void updatePlayMode() {
@@ -283,8 +286,8 @@ public class GameController implements Serializable {
     long currentTime = System.currentTimeMillis();
     long effectiveTime = currentTime - pauseDuration;
     if (effectiveTime - lastMonsterSpawnTime >= MONSTER_SPAWN_INTERVAL) {
-        spawnMonster();
-        lastMonsterSpawnTime = currentTime;
+      spawnMonster();
+      lastMonsterSpawnTime = currentTime;
     }
 
     // Update monster states and interactions
@@ -377,31 +380,32 @@ public class GameController implements Serializable {
     Hero hero = gameState.getHero();
     int heroX = hero.getX();
     int heroY = hero.getY();
-    
+
     // Reduced safe radius to 2 tiles for more balanced spawning
-    int safeRadius = 2;  // Changed from 3 to 2
-    
+    int safeRadius = 2; // Changed from 3 to 2
+
     // Try to find a valid spawn position with maximum attempts
     int maxAttempts = 20;
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
-        // Get random position
-        int[] position = gameState.findRandomEmptyPosition();
-        if (position == null) return;  // No empty positions available
-        
-        // Check if position is far enough from hero
-        int distanceX = Math.abs(position[0] - heroX);
-        int distanceY = Math.abs(position[1] - heroY);
-        
-        // Only spawn if the monster is outside the safe radius
-        if (distanceX > safeRadius || distanceY > safeRadius) {
-            // Randomly select any monster type
-            Monster.Type monsterType = Monster.Type.values()[new Random().nextInt(Monster.Type.values().length)];
-            
-            // Create and add the monster
-            Monster monster = new Monster(monsterType, position[0], position[1]);
-            gameState.addMonster(monster);
-            return;  // Successfully spawned monster
-        }
+      // Get random position
+      int[] position = gameState.findRandomEmptyPosition();
+      if (position == null) return; // No empty positions available
+
+      // Check if position is far enough from hero
+      int distanceX = Math.abs(position[0] - heroX);
+      int distanceY = Math.abs(position[1] - heroY);
+
+      // Only spawn if the monster is outside the safe radius
+      if (distanceX > safeRadius || distanceY > safeRadius) {
+        // Randomly select any monster type
+        Monster.Type monsterType =
+            Monster.Type.values()[new Random().nextInt(Monster.Type.values().length)];
+
+        // Create and add the monster
+        Monster monster = new Monster(monsterType, position[0], position[1]);
+        gameState.addMonster(monster);
+        return; // Successfully spawned monster
+      }
     }
     // If we get here, couldn't find a valid spawn position after max attempts
   }
@@ -416,11 +420,10 @@ public class GameController implements Serializable {
   }
 
   /**
-   * Main update method that handles all game state updates based on the current
-   * mode.
+   * Main update method that handles all game state updates based on the current mode.
    *
    * @param currentMode The current game mode
-   * @param isPaused    Whether the game is currently paused
+   * @param isPaused Whether the game is currently paused
    */
   public void update(GameMode currentMode, boolean isPaused) {
     switch (currentMode) {

@@ -82,8 +82,7 @@ public class GamePanel extends JPanel implements Runnable {
   private GameMode currentMode = GameMode.MENU;
 
   /**
-   * Initializes the game panel and all its components. Sets up the display, input
-   * handlers, game
+   * Initializes the game panel and all its components. Sets up the display, input handlers, game
    * state, renderer, and controllers.
    */
   public GamePanel() {
@@ -160,10 +159,7 @@ public class GamePanel extends JPanel implements Runnable {
     return gameController;
   }
 
-  /**
-   * Main game loop implementation. Handles timing, updates, and rendering at the
-   * specified FPS.
-   */
+  /** Main game loop implementation. Handles timing, updates, and rendering at the specified FPS. */
   @Override
   public void run() {
     double delta = 0;
@@ -186,8 +182,7 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Updates the game state based on the current game mode. Delegates to
-   * appropriate controller
+   * Updates the game state based on the current game mode. Delegates to appropriate controller
    * methods for each mode.
    */
   public void update() {
@@ -195,8 +190,7 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Handles the rendering of the game. Sets up graphics context and delegates
-   * rendering to the
+   * Handles the rendering of the game. Sets up graphics context and delegates rendering to the
    * Renderer.
    *
    * @param g The Graphics context provided by Swing
@@ -216,8 +210,7 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Resets the game state to its initial condition. Called when returning to menu
-   * or starting a new
+   * Resets the game state to its initial condition. Called when returning to menu or starting a new
    * game.
    */
   public void resetGameState() {
@@ -253,53 +246,52 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Loads a saved GameController and reinitializes all references, including
-   * GameState.
-   * 
+   * Loads a saved GameController and reinitializes all references, including GameState.
+   *
    * @param saveFilePath the .ser file to load from
    */
   public void loadGameController(String saveFilePath) {
     try {
-        GameController loadedController = SaveLoadManager.loadGame(saveFilePath);
-        if (loadedController != null) {
-            // Reset input state before reinitializing
-            this.inputState.reset();
-            
-            // Reinitialize transient fields:
-            loadedController.reinitialize(this, inputState);
+      GameController loadedController = SaveLoadManager.loadGame(saveFilePath);
+      if (loadedController != null) {
+        // Reset input state before reinitializing
+        this.inputState.reset();
 
-            // Update this panel to use the loaded controller and state
-            this.gameController = loadedController;
-            this.gameState = loadedController.getGameState();
+        // Reinitialize transient fields:
+        loadedController.reinitialize(this, inputState);
 
-            // Rebuild the renderer with the newly loaded state
-            this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
-            this.renderer.setMenu(menu);
+        // Update this panel to use the loaded controller and state
+        this.gameController = loadedController;
+        this.gameState = loadedController.getGameState();
 
-            // Rebuild the mouse handler
-            this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
-            for (java.awt.event.MouseListener listener : this.getMouseListeners()) {
-                this.removeMouseListener(listener);
-            }
-            this.addMouseListener(mouseH);
+        // Rebuild the renderer with the newly loaded state
+        this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
+        this.renderer.setMenu(menu);
 
-            // Make sure the key handler is properly set up
-            this.removeKeyListener(keyH);
-            this.keyH = new KeyHandler(inputState);
-            this.addKeyListener(keyH);
-            this.setFocusable(true);
-            this.requestFocus();
-
-            // Jump into PLAY mode
-            this.setMode(GameMode.PLAY);
+        // Rebuild the mouse handler
+        this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
+        for (java.awt.event.MouseListener listener : this.getMouseListeners()) {
+          this.removeMouseListener(listener);
         }
+        this.addMouseListener(mouseH);
+
+        // Make sure the key handler is properly set up
+        this.removeKeyListener(keyH);
+        this.keyH = new KeyHandler(inputState);
+        this.addKeyListener(keyH);
+        this.setFocusable(true);
+        this.requestFocus();
+
+        // Jump into PLAY mode
+        this.setMode(GameMode.PLAY);
+      }
     } catch (Exception e) {
-        // Log the error
-        System.err.println("Error loading game: " + e.getMessage());
-        // Reset to menu
-        this.setMode(GameMode.MENU);
-        // Reinitialize game state
-        resetGameState();
+      // Log the error
+      System.err.println("Error loading game: " + e.getMessage());
+      // Reset to menu
+      this.setMode(GameMode.MENU);
+      // Reinitialize game state
+      resetGameState();
     }
   }
 }
