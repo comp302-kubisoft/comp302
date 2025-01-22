@@ -7,12 +7,13 @@ package domain.model.entity;
 import domain.model.GameState;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.Serializable;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import ui.tile.TileManager;
 
-public class Hero extends Entity implements Serializable {
+public class Hero extends Entity {
   private static final long serialVersionUID = 1L;
 
   /** The hero's sprite image */
@@ -32,9 +33,6 @@ public class Hero extends Entity implements Serializable {
 
   /** Reference to the game state for collision detection */
   private transient GameState gameState;
-
-  /** Random number generator for spawn position */
-  private static final Random random = new Random();
 
   /** Current health of the hero */
   private int health;
@@ -97,8 +95,7 @@ public class Hero extends Entity implements Serializable {
    * @param tileSize    Size of each tile in pixels
    */
   public void setSpawnPosition(TileManager tileManager, int tileSize) {
-    if (spawnPositionSet)
-      return;
+    if (spawnPositionSet) return;
 
     // Get game area boundaries from GameState
     int minX = gameState.getGameAreaStart();
@@ -106,21 +103,29 @@ public class Hero extends Entity implements Serializable {
     int minY = gameState.getGameAreaStart();
     int maxY = gameState.getGameAreaEnd();
 
-    // Keep trying random positions until we find a valid one
-    while (!spawnPositionSet) {
-      // Generate random position within game area
-      int gridX = minX + random.nextInt(maxX - minX + 1);
-      int gridY = minY + random.nextInt(maxY - minY + 1);
-
-      // Check if position is valid (no wall or object)
-      if (!tileManager.tile[tileManager.mapTileNum[gridX][gridY]].collision
-          && !gameState.isTileOccupied(gridX, gridY)) {
-
-        // Convert grid position to pixel coordinates
-        x = gridX * tileSize;
-        y = gridY * tileSize;
+    // If position is already within valid bounds, keep it
+    int currentGridX = x / tileSize;
+    int currentGridY = y / tileSize;
+    if (currentGridX >= minX && currentGridX <= maxX && 
+        currentGridY >= minY && currentGridY <= maxY &&
+        !tileManager.tile[tileManager.mapTileNum[currentGridX][currentGridY]].collision &&
+        !gameState.isTileOccupied(currentGridX, currentGridY)) {
         spawnPositionSet = true;
-      }
+        return;
+    }
+
+    // Otherwise find new valid position
+    Random random = new Random();
+    while (!spawnPositionSet) {
+        int gridX = minX + random.nextInt(maxX - minX + 1);
+        int gridY = minY + random.nextInt(maxY - minY + 1);
+
+        if (!tileManager.tile[tileManager.mapTileNum[gridX][gridY]].collision &&
+            !gameState.isTileOccupied(gridX, gridY)) {
+            x = gridX * tileSize;
+            y = gridY * tileSize;
+            spawnPositionSet = true;
+        }
     }
   }
 
@@ -489,5 +494,34 @@ public class Hero extends Entity implements Serializable {
    */
   public void setGameState(GameState gameState) {
     this.gameState = gameState;
+  }
+
+  public boolean isSpawnPositionSet() {
+    return spawnPositionSet;
+  }
+
+  // Add serialization for position
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.defaultWriteObject();
+    // Save the hero's position and state
+    out.writeInt(x);
+    out.writeInt(y);
+    out.writeInt(speed);
+    out.writeBoolean(spawnPositionSet);
+    out.writeObject(direction);
+    out.writeInt(health);
+  }
+  
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    // Restore the hero's position and state
+    x = in.readInt();
+    y = in.readInt();
+    speed = in.readInt();
+    spawnPositionSet = in.readBoolean();
+    direction = (String) in.readObject();
+    health = in.readInt();
+    // Load images after deserialization
+    loadImage();
   }
 }

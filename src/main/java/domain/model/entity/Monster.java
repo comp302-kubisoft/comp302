@@ -3,13 +3,15 @@ package domain.model.entity;
 import domain.model.GameState;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.Serializable;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import ui.tile.TileManager;
+import ui.sound.SoundManager;
 
-public class Monster extends Entity implements Serializable {
+public class Monster extends Entity {
   private static final long serialVersionUID = 1L;
 
   /** Reference to the game state */
@@ -30,9 +32,9 @@ public class Monster extends Entity implements Serializable {
   private static final int DEFAULT_SPEED = 2; // Half the hero's speed
   private static final long DIRECTION_CHANGE_INTERVAL = 2000; // 2 seconds
   private long lastDirectionChange;
-  private Random random = new Random();
+  private transient Random random = new Random();
   private static final String[] DIRECTIONS = { "up", "down", "left", "right" };
-  private transient ui.sound.SoundManager soundManager;
+  private transient SoundManager soundManager;
   private static final long WIZARD_TELEPORT_INTERVAL = 5000; // 5 seconds
   private long lastTeleportTime = 0;
   private boolean isCastingSpell = false;
@@ -47,14 +49,20 @@ public class Monster extends Entity implements Serializable {
     this.monsterType = type;
     this.x = x;
     this.y = y;
-    if (type == Type.FIGHTER) {
-      this.speed = DEFAULT_SPEED;
-      this.direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
-      this.lastDirectionChange = System.currentTimeMillis();
-    } else if (type == Type.WIZARD) {
-      this.lastTeleportTime = System.currentTimeMillis(); // Initialize teleport timer at spawn
+    this.health = 1;  // Default health
+    this.shouldRemove = false;
+    
+    // Set default speed and direction for all monster types
+    this.speed = DEFAULT_SPEED;
+    this.direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
+    this.lastDirectionChange = System.currentTimeMillis();
+    
+    // Special initialization for Wizard
+    if (type == Type.WIZARD) {
+      this.lastTeleportTime = System.currentTimeMillis();
     }
-    this.soundManager = ui.sound.SoundManager.getInstance();
+    
+    this.soundManager = SoundManager.getInstance();
     loadImage();
   }
 
@@ -448,5 +456,64 @@ public class Monster extends Entity implements Serializable {
 
   public void markForRemoval() {
     shouldRemove = true;
+  }
+
+  public void setSoundManager(SoundManager soundManager) {
+    this.soundManager = soundManager;
+  }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.defaultWriteObject();
+    // Write Entity fields
+    out.writeInt(x);
+    out.writeInt(y);
+    out.writeInt(speed);
+    // Write Monster-specific fields
+    out.writeObject(monsterType);  // Save monster type
+    out.writeInt(health);
+    out.writeBoolean(shouldRemove);
+    out.writeLong(lastAttackTime);
+    out.writeLong(lastDirectionChange);
+    out.writeLong(lastTeleportTime);
+    out.writeBoolean(isCastingSpell);
+    out.writeLong(pauseDuration);
+    out.writeObject(direction);
+    // Save strategy for wizard
+    if (monsterType == Type.WIZARD) {
+      out.writeObject(wizardStrategy);
+    }
+  }
+
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    // Read Entity fields
+    x = in.readInt();
+    y = in.readInt();
+    speed = in.readInt();
+    // Read Monster-specific fields
+    monsterType = (Type)in.readObject();
+    health = in.readInt();
+    shouldRemove = in.readBoolean();
+    lastAttackTime = in.readLong();
+    lastDirectionChange = in.readLong();
+    lastTeleportTime = in.readLong();
+    isCastingSpell = in.readBoolean();
+    pauseDuration = in.readLong();
+    direction = (String)in.readObject();
+    // Restore strategy for wizard
+    if (monsterType == Type.WIZARD) {
+      wizardStrategy = (WizardStrategy)in.readObject();
+    }
+
+    // Reinitialize transient fields
+    this.random = new Random();
+    this.soundManager = SoundManager.getInstance();
+    loadImage();
+  }
+
+  public void initializeWizardBehavior() {
+    if (monsterType == Type.WIZARD && wizardStrategy == null) {
+      wizardStrategy = new GoodSituationWizardStrategy();
+    }
   }
 }

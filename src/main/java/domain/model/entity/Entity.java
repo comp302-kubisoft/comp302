@@ -5,8 +5,11 @@
 package domain.model.entity;
 
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
-public class Entity {
+public abstract class Entity implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   /** X coordinate in pixels */
   protected int x;
@@ -22,6 +25,9 @@ public class Entity {
 
   /** Current facing direction ("up", "down", "left", "right") */
   protected String direction;
+
+  /** Health of the entity */
+  protected int health;
 
   /**
    * Gets the entity's current X coordinate.
@@ -104,5 +110,23 @@ public class Entity {
    */
   public void setSpeed(int speed) {
     this.speed = speed;
+  }
+
+  /**
+   * Gets the entity's health.
+   *
+   * @return Health of the entity
+   */
+  public int getHealth() {
+    return health;
+  }
+
+  /**
+   * Sets the entity's health.
+   *
+   * @param health New health of the entity
+   */
+  public void setHealth(int health) {
+    this.health = health;
   }
 }

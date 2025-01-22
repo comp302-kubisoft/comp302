@@ -37,6 +37,8 @@ import domain.model.entity.Monster;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +54,9 @@ public class GameState implements Serializable {
 
   /** The player character entity */
   private Hero hero;
+
+  /** Size of each tile in pixels */
+  private int tileSize;
 
   /** Manages the game's tile-based map */
   private transient TileManager tileManager;
@@ -115,6 +120,9 @@ public class GameState implements Serializable {
     /** Whether this object has a rune */
     public boolean hasRune;
 
+    /** Enchantment associated with this placed object */
+    public Enchantment enchantment;
+
     /**
      * Creates a new placed object with specified position and type.
      *
@@ -131,6 +139,18 @@ public class GameState implements Serializable {
       this.gridX = gridX;
       this.gridY = gridY;
       this.hasRune = false;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+      out.defaultWriteObject();
+      out.writeBoolean(hasRune);
+      out.writeObject(enchantment);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+      in.defaultReadObject();
+      hasRune = in.readBoolean();
+      enchantment = (Enchantment)in.readObject();
     }
   }
 
@@ -180,8 +200,14 @@ public class GameState implements Serializable {
   private int gemTargetX, gemTargetY; // Target position for throw animation
   private static final float GEM_THROW_SPEED = 0.1f; // Adjust for faster/slower throws
 
+  private int maxScreenCol;  // Add these fields to store screen dimensions
+  private int maxScreenRow;
+
   /** Initializes a new game state with specified dimensions. */
   public GameState(int tileSize, int maxScreenCol, int maxScreenRow) {
+    this.tileSize = tileSize;
+    this.maxScreenCol = maxScreenCol;
+    this.maxScreenRow = maxScreenRow;
     this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
     this.hallObjects = new ArrayList<>();
     for (int i = 0; i < TOTAL_HALLS; i++) {
@@ -246,8 +272,8 @@ public class GameState implements Serializable {
   /** Checks if a position is empty (no hero, objects, or monsters). */
   private boolean isPositionEmpty(int gridX, int gridY) {
     // Check for hero
-    int heroGridX = hero.getX() / tileManager.getTileSize();
-    int heroGridY = hero.getY() / tileManager.getTileSize();
+    int heroGridX = hero.getX() / tileSize;
+    int heroGridY = hero.getY() / tileSize;
     if (heroGridX == gridX && heroGridY == gridY)
       return false;
 
@@ -257,8 +283,8 @@ public class GameState implements Serializable {
 
     // Check for monsters
     for (Monster monster : monsters) {
-      int monsterGridX = monster.getX() / tileManager.getTileSize();
-      int monsterGridY = monster.getY() / tileManager.getTileSize();
+      int monsterGridX = monster.getX() / tileSize;
+      int monsterGridY = monster.getY() / tileSize;
       if (monsterGridX == gridX && monsterGridY == gridY)
         return false;
     }
@@ -286,15 +312,25 @@ public class GameState implements Serializable {
    * update.
    */
   public void updateMonsters() {
-    int tileSize = tileManager.getTileSize();
     int heroGridX = hero.getX() / tileSize;
     int heroGridY = hero.getY() / tileSize;
 
-    for (Monster monster : monsters) {
-      // Update fighter movement
-      monster.update(tileManager, tileSize);
+    // Create a copy of the list to avoid concurrent modification
+    List<Monster> monstersToRemove = new ArrayList<>();
+    
+    synchronized(monsters) {
+        for (Monster monster : monsters) {
+            monster.update(tileManager, tileSize);
+            if (monster.shouldRemove()) {
+                monstersToRemove.add(monster);
+            }
+        }
+        // Remove monsters after iteration
+        monsters.removeAll(monstersToRemove);
+    }
 
-      // Handle archer attacks
+    // Handle archer attacks
+    for (Monster monster : monsters) {
       if (monster.getType() == Monster.Type.ARCHER && monster.canAttack()) {
         int monsterGridX = monster.getX() / tileSize;
         int monsterGridY = monster.getY() / tileSize;
@@ -307,9 +343,6 @@ public class GameState implements Serializable {
         }
       }
     }
-
-    // Remove monsters that are marked for removal
-    monsters.removeIf(Monster::shouldRemove);
   }
 
   /**
@@ -1200,30 +1233,121 @@ public class GameState implements Serializable {
   }
 
   public void reinitialize(int tileSize, int maxScreenCol, int maxScreenRow) {
-    // Reinitialize TileManager
-    this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
-
-    // Reinitialize SoundManager
+    if (tileSize <= 0 || maxScreenCol <= 0 || maxScreenRow <= 0) {
+        throw new IllegalArgumentException("Invalid initialization parameters");
+    }
+    
+    this.tileSize = tileSize;
+    this.maxScreenCol = maxScreenCol;
+    this.maxScreenRow = maxScreenRow;
+    // Only create new TileManager if it doesn't exist
+    if (this.tileManager == null) {
+        this.tileManager = new TileManager(tileSize, maxScreenCol, maxScreenRow);
+    }
+    
     this.soundManager = SoundManager.getInstance();
 
-    // Reload hero's images and reassign GameState reference
+    // Reinitialize hero
     if (hero != null) {
-      hero.loadImage();
-      hero.setGameState(this); // Reassign GameState to Hero
+        hero.loadImage();
+        hero.setGameState(this);
     }
 
-    // Reload monster images and reassign GameState reference
+    // Reinitialize monsters
     if (monsters != null) {
-      for (Monster monster : monsters) {
-        monster.loadImage();
-        monster.setGameState(this); // Reassign GameState to Monster
-      }
+        for (Monster monster : monsters) {
+            monster.loadImage();
+            monster.setGameState(this);
+            monster.setSoundManager(soundManager);
+            // Reset any necessary state
+            if (monster.getType() == Monster.Type.WIZARD) {
+                monster.initializeWizardBehavior();
+            }
+            // Ensure monster is in valid position
+            if (!isWithinGameArea(monster.getX()/tileSize, monster.getY()/tileSize)) {
+                int[] newPos = findRandomEmptyPosition();
+                if (newPos != null) {
+                    monster.setPosition(newPos[0], newPos[1]);
+                }
+            }
+        }
     }
 
-    // Reload any other transient BufferedImages
     loadLuringGemImage();
-
     lastUpdateTime = System.currentTimeMillis();
   }
 
+  public int getTileSize() {
+    return tileSize;
+  }
+
+  private long gameTime;  // Track total game time
+  private long lastPauseTime;
+  private long totalPauseDuration;
+
+  public void updateGameTime() {
+    if (!isPaused) {
+      gameTime = System.currentTimeMillis() - startTime - totalPauseDuration;
+    }
+  }
+
+  private boolean isPaused;
+  private long startTime;
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.defaultWriteObject();
+    out.writeLong(gameTime);
+    out.writeLong(lastPauseTime);
+    out.writeLong(totalPauseDuration);
+    out.writeInt(maxScreenCol);
+    out.writeInt(maxScreenRow);
+  }
+
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    gameTime = in.readLong();
+    lastPauseTime = in.readLong();
+    totalPauseDuration = in.readLong();
+    maxScreenCol = in.readInt();
+    maxScreenRow = in.readInt();
+    reinitialize(tileSize, maxScreenCol, maxScreenRow);
+  }
+
+  public void spawnMonster() {
+    if (monsters.size() >= MAX_MONSTERS) {
+      return;
+    }
+
+    int[] position = findRandomEmptyPosition();
+    if (position == null) {
+      return;
+    }
+
+    Random random = new Random();
+    // Simply pick a random monster type from all available types
+    Monster.Type monsterType = Monster.Type.values()[random.nextInt(Monster.Type.values().length)];
+
+    Monster monster = new Monster(monsterType, position[0], position[1]);
+    monster.setGameState(this);
+    monsters.add(monster);
+  }
+
+  private String saveMessage = null;
+  private long saveMessageStartTime = 0;
+  private static final long SAVE_MESSAGE_DURATION = 2000; // 2 seconds in milliseconds
+
+  public void setSaveMessage(String message) {
+    this.saveMessage = message;
+    this.saveMessageStartTime = System.currentTimeMillis();
+  }
+
+  public String getSaveMessage() {
+    if (saveMessage != null) {
+      long currentTime = System.currentTimeMillis();
+      if (currentTime - saveMessageStartTime > SAVE_MESSAGE_DURATION) {
+        saveMessage = null;
+      }
+    }
+    return saveMessage;
+  }
 }

@@ -8,8 +8,19 @@ import java.awt.Graphics2D;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 
-public class TileManager {
+public class TileManager implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  // Door position constants
+  private static final int DOOR_X = 9;  // Door X position in grid
+  private static final int DOOR_Y = 16; // Door Y position in grid
+  
+  // Door tile indices
+  private static final int CLOSED_DOOR_TILE = 2;  // Index for closed door tile
+  private static final int OPEN_DOOR_TILE = 3;    // Index for open door tile
 
   /** Size of each tile in pixels */
   private int tileSize;
@@ -25,6 +36,8 @@ public class TileManager {
 
   /** 2D array representing the map layout */
   public int[][] mapTileNum;
+
+  private boolean doorOpen = false;
 
   /**
    * Creates a new TileManager with specified dimensions. Initializes tiles and loads the default
@@ -154,5 +167,19 @@ public class TileManager {
    */
   public int getTileSize() {
     return tileSize;
+  }
+
+  public boolean isDoorOpen() {
+    return doorOpen;
+  }
+
+  public void setDoorState(boolean isOpen) {
+    this.doorOpen = isOpen;
+    // Update the tile map when door state changes
+    if (isOpen) {
+      mapTileNum[DOOR_X][DOOR_Y] = OPEN_DOOR_TILE;
+    } else {
+      mapTileNum[DOOR_X][DOOR_Y] = CLOSED_DOOR_TILE;
+    }
   }
 }

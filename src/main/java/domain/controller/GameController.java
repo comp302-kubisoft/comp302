@@ -64,22 +64,33 @@ public class GameController implements Serializable {
    * references.
    */
   public void reinitialize(GamePanel gamePanel, InputState inputState) {
+    if (gamePanel == null || inputState == null) {
+        throw new IllegalArgumentException("GamePanel and InputState cannot be null");
+    }
+    
     this.gamePanel = gamePanel;
     this.inputState = inputState;
+    
+    // Reset input state to clear any lingering inputs
+    this.inputState.reset();
+    
     if (this.menu == null) {
-      this.menu = new Menu(SoundManager.getInstance());
+        this.menu = new Menu(SoundManager.getInstance());
     }
     if (gamePanel != null && gamePanel.getRenderer() != null) {
-      gamePanel.getRenderer().setMenu(menu);
+        gamePanel.getRenderer().setMenu(menu);
     }
 
     // Reinitialize transient fields in the GameState
     if (this.gameState != null) {
-      this.gameState.reinitialize(
-          gamePanel.tileSize,
-          gamePanel.maxScreenCol,
-          gamePanel.maxScreenRow);
+        this.gameState.reinitialize(
+            gamePanel.tileSize,
+            gamePanel.maxScreenCol,
+            gamePanel.maxScreenRow);
     }
+
+    // Don't trigger monster spawn on load
+    this.lastMonsterSpawnTime = System.currentTimeMillis();
   }
 
   public GameState getGameState() {
@@ -383,26 +394,8 @@ public class GameController implements Serializable {
         
         // Only spawn if the monster is outside the safe radius
         if (distanceX > safeRadius || distanceY > safeRadius) {
-            // Choose monster type based on current hall
-            Monster.Type monsterType;
-            switch (gameState.getCurrentHall()) {
-                case 0: // Earth
-                    monsterType = Monster.Type.FIGHTER;
-                    break;
-                case 1: // Air
-                    monsterType = Monster.Type.ARCHER;
-                    break;
-                case 2: // Water
-                    monsterType = new Random().nextBoolean() ? Monster.Type.FIGHTER : Monster.Type.ARCHER;
-                    break;
-                case 3: // Fire
-                    monsterType = new Random().nextBoolean() 
-                        ? Monster.Type.WIZARD 
-                        : (new Random().nextBoolean() ? Monster.Type.FIGHTER : Monster.Type.ARCHER);
-                    break;
-                default:
-                    return;
-            }
+            // Randomly select any monster type
+            Monster.Type monsterType = Monster.Type.values()[new Random().nextInt(Monster.Type.values().length)];
             
             // Create and add the monster
             Monster monster = new Monster(monsterType, position[0], position[1]);

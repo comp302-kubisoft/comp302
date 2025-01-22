@@ -259,28 +259,47 @@ public class GamePanel extends JPanel implements Runnable {
    * @param saveFilePath the .ser file to load from
    */
   public void loadGameController(String saveFilePath) {
-    GameController loadedController = SaveLoadManager.loadGame(saveFilePath);
-    if (loadedController != null) {
-      // Reinitialize transient fields:
-      loadedController.reinitialize(this, inputState);
+    try {
+        GameController loadedController = SaveLoadManager.loadGame(saveFilePath);
+        if (loadedController != null) {
+            // Reset input state before reinitializing
+            this.inputState.reset();
+            
+            // Reinitialize transient fields:
+            loadedController.reinitialize(this, inputState);
 
-      // Update this panel to use the loaded controller and state
-      this.gameController = loadedController;
-      this.gameState = loadedController.getGameState();
+            // Update this panel to use the loaded controller and state
+            this.gameController = loadedController;
+            this.gameState = loadedController.getGameState();
 
-      // Rebuild the renderer with the newly loaded state
-      this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
-      this.renderer.setMenu(menu);
+            // Rebuild the renderer with the newly loaded state
+            this.renderer = new Renderer(gameState, tileSize, screenWidth, screenHeight, this);
+            this.renderer.setMenu(menu);
 
-      // Rebuild the mouse handler
-      this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
-      for (java.awt.event.MouseListener listener : this.getMouseListeners()) {
-        this.removeMouseListener(listener);
-      }
-      this.addMouseListener(mouseH);
+            // Rebuild the mouse handler
+            this.mouseH = new MouseHandler(renderer, gameState, tileSize, screenWidth, this);
+            for (java.awt.event.MouseListener listener : this.getMouseListeners()) {
+                this.removeMouseListener(listener);
+            }
+            this.addMouseListener(mouseH);
 
-      // Optionally jump into PLAY mode or some other mode depending on your design
-      this.setMode(GameMode.PLAY);
+            // Make sure the key handler is properly set up
+            this.removeKeyListener(keyH);
+            this.keyH = new KeyHandler(inputState);
+            this.addKeyListener(keyH);
+            this.setFocusable(true);
+            this.requestFocus();
+
+            // Jump into PLAY mode
+            this.setMode(GameMode.PLAY);
+        }
+    } catch (Exception e) {
+        // Log the error
+        System.err.println("Error loading game: " + e.getMessage());
+        // Reset to menu
+        this.setMode(GameMode.MENU);
+        // Reinitialize game state
+        resetGameState();
     }
   }
 }

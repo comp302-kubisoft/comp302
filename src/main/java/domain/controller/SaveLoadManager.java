@@ -29,12 +29,19 @@ public class SaveLoadManager {
      * @param saveName       A friendly name for the save file (no extension)
      */
     public static void saveGame(GameController gameController, String saveName) {
+        if (gameController == null || saveName == null || saveName.isEmpty()) {
+            throw new IllegalArgumentException("Invalid save parameters");
+        }
+        
         String filePath = SAVE_DIRECTORY + File.separator + saveName + ".ser";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
             oos.writeObject(gameController);
             System.out.println("Game saved successfully to " + filePath);
+            gameController.getGameState().setSaveMessage("Game Saved Successfully!");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Failed to save game: " + e.getMessage());
+            gameController.getGameState().setSaveMessage("Failed to Save Game!");
+            throw new RuntimeException("Failed to save game", e);
         }
     }
 
@@ -72,5 +79,29 @@ public class SaveLoadManager {
             e.printStackTrace();
         }
         return saves;
+    }
+
+    public static boolean isValidSaveFile(String filePath) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+            Object obj = ois.readObject();
+            return obj instanceof GameController;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static class SaveMetadata implements Serializable {
+        private static final long serialVersionUID = 1L;
+        public final String saveName;
+        public final long timestamp;
+        public final int currentHall;
+        public final int heroHealth;
+        
+        public SaveMetadata(GameController controller) {
+            this.saveName = "Save_" + System.currentTimeMillis();
+            this.timestamp = System.currentTimeMillis();
+            this.currentHall = controller.getGameState().getCurrentHall();
+            this.heroHealth = controller.getGameState().getHero().getHealth();
+        }
     }
 }

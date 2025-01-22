@@ -54,5 +54,6 @@ public class InputState {
     luringGemPressed = false;
     throwGemActive = false;
     throwDirection = null;
+    // Add any other input flags that need resetting
   }
 }
