@@ -2,6 +2,8 @@ package domain.model.entity;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import javax.imageio.ImageIO;
@@ -137,5 +139,28 @@ public class Enchantment implements Serializable {
   /** Gets the remaining time before this enchantment expires. */
   public long getRemainingTime() {
     return Math.max(0, DURATION - getEffectiveTime());
+  }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.defaultWriteObject();
+    out.writeInt(x);
+    out.writeInt(y);
+    out.writeLong(spawnTime);
+    out.writeLong(totalPauseDuration);
+    out.writeBoolean(isGamePaused);
+    out.writeLong(currentPauseStart);
+    out.writeObject(type);
+  }
+
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    x = in.readInt();
+    y = in.readInt();
+    spawnTime = in.readLong();
+    totalPauseDuration = in.readLong();
+    isGamePaused = in.readBoolean();
+    currentPauseStart = in.readLong();
+    type = (Type)in.readObject();
+    loadImage();
   }
 }

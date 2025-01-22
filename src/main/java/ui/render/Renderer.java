@@ -23,6 +23,7 @@ import javax.imageio.ImageIO;
 import ui.main.GamePanel;
 import ui.menu.Menu;
 import ui.tile.BuildObjectManager;
+import domain.controller.SaveLoadManager;
 
 public class Renderer {
 
@@ -40,8 +41,6 @@ public class Renderer {
   private final Color WOOD_DARK = new Color(87, 61, 38);
   private final Color WOOD_LIGHT = new Color(116, 82, 53);
   private final Color TEXT_COLOR = new Color(231, 231, 231);
-  private final Color SELECTED_COLOR = new Color(255, 255, 255);
-  private final Color UNSELECTED_COLOR = new Color(180, 180, 180);
 
   // Hall theme colors
   private final Color EARTH_DARK = new Color(101, 67, 33); // Dark brown
@@ -229,6 +228,45 @@ public class Renderer {
 
         // Draw warning message on top if active
         drawWarningMessage(g2);
+
+        // Draw save message if exists
+        String saveMessage = gameState.getSaveMessage();
+        if (saveMessage != null) {
+          // Save original composite
+          Composite originalComposite = g2.getComposite();
+          
+          // Draw semi-transparent background
+          g2.setColor(new Color(0, 0, 0, 0.7f));
+          int messageY = 50;  // Position near top of screen
+          int padding = 20;
+          g2.setFont(new Font("Monospaced", Font.BOLD, 28));
+          FontMetrics fm = g2.getFontMetrics();
+          int messageWidth = fm.stringWidth(saveMessage) + padding * 2;
+          int messageHeight = fm.getHeight() + padding;
+          g2.fillRect((screenWidth - messageWidth) / 2, messageY - fm.getAscent(), 
+                     messageWidth, messageHeight);
+          
+          // Draw golden border
+          g2.setColor(new Color(218, 165, 32));  // Golden color
+          g2.setStroke(new BasicStroke(2.0f));
+          g2.drawRect((screenWidth - messageWidth) / 2, messageY - fm.getAscent(), 
+                     messageWidth, messageHeight);
+          
+          // Draw message text with slight shadow for depth
+          g2.setColor(new Color(0, 0, 0, 0.5f));
+          g2.drawString(saveMessage, 
+                       (screenWidth - fm.stringWidth(saveMessage)) / 2 + 2, 
+                       messageY + 2);  // Shadow offset
+          
+          // Draw actual message
+          g2.setColor(new Color(255, 223, 186));  // Light golden color
+          g2.drawString(saveMessage, 
+                       (screenWidth - fm.stringWidth(saveMessage)) / 2, 
+                       messageY);
+          
+          // Restore original composite
+          g2.setComposite(originalComposite);
+        }
         break;
       case BUILD:
         drawBuildMode(g2);
@@ -1185,75 +1223,96 @@ public class Renderer {
   }
 
   private void drawLoadScreen(Graphics2D g2) {
-    // Draw dark background
+    // Draw background
     g2.setColor(BACKGROUND_DARK);
     g2.fillRect(0, 0, screenWidth, screenHeight);
 
-    // Draw wooden panel
-    int margin = 40;
+    // Draw wooden panel with same style as help screen
+    int margin = 50;
     int panelWidth = screenWidth - 2 * margin;
     int panelHeight = screenHeight - 2 * margin;
 
+    // Draw panel background with gradient
     GradientPaint woodGradient = new GradientPaint(
-        margin, margin, WOOD_DARK, margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
+        margin, margin, WOOD_DARK,
+        margin + panelWidth, margin + panelHeight, WOOD_LIGHT);
     g2.setPaint(woodGradient);
     g2.fillRect(margin, margin, panelWidth, panelHeight);
 
+    // Draw panel border
     g2.setColor(WOOD_DARK);
     g2.setStroke(new BasicStroke(4));
     g2.drawRect(margin, margin, panelWidth, panelHeight);
 
     // Draw title
-    g2.setFont(new Font("Monospaced", Font.BOLD, 40));
+    g2.setFont(new Font("Dialog", Font.BOLD, 28));
+    g2.setColor(TEXT_COLOR);
     String title = "LOAD GAME";
     int titleWidth = g2.getFontMetrics().stringWidth(title);
-    g2.setColor(TEXT_COLOR);
-    g2.drawString(title, screenWidth / 2 - titleWidth / 2, margin + 60);
+    g2.drawString(title, screenWidth / 2 - titleWidth / 2, margin + 50);
 
     // Get list of save files
-    java.util.List<String> saves = domain.controller.SaveLoadManager.getAvailableSaves();
+    List<String> saves = SaveLoadManager.getAvailableSaves();
 
     if (saves.isEmpty()) {
-      // Show message if no saves found
-      g2.setFont(new Font("Monospaced", Font.BOLD, 20));
-      String noSavesText = "No saved games found";
-      int textWidth = g2.getFontMetrics().stringWidth(noSavesText);
-      g2.drawString(noSavesText, screenWidth / 2 - textWidth / 2, screenHeight / 2);
+        g2.setFont(new Font("Dialog", Font.PLAIN, 24));
+        String noSavesText = "No saved games found";
+        int textWidth = g2.getFontMetrics().stringWidth(noSavesText);
+        g2.drawString(noSavesText, screenWidth / 2 - textWidth / 2, screenHeight / 2);
     } else {
-      // Draw save files list
-      g2.setFont(new Font("Monospaced", Font.BOLD, 20));
-      int startY = margin + 120;
-      int spacing = 40;
+        // Draw save files list
+        g2.setFont(new Font("Dialog", Font.PLAIN, 24));
+        int startY = margin + 100;
+        int spacing = 25;
 
-      for (int i = 0; i < saves.size(); i++) {
-        String saveFile = saves.get(i);
-        // Remove .ser extension for display
-        saveFile = saveFile.replace(".ser", "");
+        // Calculate visible range for saves
+        int visibleSaves = 12;
+        int startIndex = Math.max(0, Math.min(selectedSaveIndex - visibleSaves/2, saves.size() - visibleSaves));
+        int endIndex = Math.min(saves.size(), startIndex + visibleSaves);
 
-        if (i == selectedSaveIndex) {
-          g2.setColor(SELECTED_COLOR);
-          String text = "[ " + saveFile + " ]";
-          int textWidth = g2.getFontMetrics().stringWidth(text);
-          g2.drawString(text, screenWidth / 2 - textWidth / 2, startY + i * spacing);
-        } else {
-          g2.setColor(UNSELECTED_COLOR);
-          int textWidth = g2.getFontMetrics().stringWidth(saveFile);
-          g2.drawString(saveFile, screenWidth / 2 - textWidth / 2, startY + i * spacing);
+        for (int i = startIndex; i < endIndex; i++) {
+            String save = saves.get(i).replace(".ser", "");
+            if (i == selectedSaveIndex) {
+                g2.setColor(TEXT_COLOR);
+                String text = "► " + save;
+                int textWidth = g2.getFontMetrics().stringWidth(text);
+                g2.drawString(text, screenWidth / 2 - textWidth / 2, startY + (i - startIndex) * spacing);
+            } else {
+                g2.setColor(TEXT_COLOR.darker());
+                int textWidth = g2.getFontMetrics().stringWidth(save);
+                g2.drawString(save, screenWidth / 2 - textWidth / 2, startY + (i - startIndex) * spacing);
+            }
         }
-      }
-    }
 
-    // Draw return instruction at bottom
-    g2.setFont(new Font("Monospaced", Font.BOLD, 16));
-    String returnText = "Press ESC to return to menu";
-    int returnWidth = g2.getFontMetrics().stringWidth(returnText);
-    g2.drawString(returnText, screenWidth / 2 - returnWidth / 2, screenHeight - margin - 20);
+        // Draw scroll indicators if needed
+        g2.setColor(TEXT_COLOR);
+        if (startIndex > 0) {
+            g2.drawString("▲", screenWidth / 2 - 10, startY - spacing);
+        }
+        if (endIndex < saves.size()) {
+            g2.drawString("▼", screenWidth / 2 - 10, startY + (endIndex - startIndex) * spacing);
+        }
+
+        // Draw instructions at bottom
+        g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+        g2.setColor(TEXT_COLOR);
+        int bottomMargin = 100;
+        String[] instructions = {
+            "↑↓: Navigate    ENTER: Load    ESC: Return"
+        };
+
+        
+
+        int instructionY = screenHeight - bottomMargin;
+        int textWidth = g2.getFontMetrics().stringWidth(instructions[0]);
+        g2.drawString(instructions[0], screenWidth / 2 - textWidth / 2, instructionY);
+    }
   }
 
   private int selectedSaveIndex = 0;
 
   public void updateLoadScreenSelection(boolean up) {
-    java.util.List<String> saves = domain.controller.SaveLoadManager.getAvailableSaves();
+    java.util.List<String> saves = SaveLoadManager.getAvailableSaves();
     if (!saves.isEmpty()) {
       if (up) {
         selectedSaveIndex = (selectedSaveIndex - 1 + saves.size()) % saves.size();
@@ -1264,7 +1323,7 @@ public class Renderer {
   }
 
   public String getSelectedSaveFile() {
-    java.util.List<String> saves = domain.controller.SaveLoadManager.getAvailableSaves();
+    java.util.List<String> saves = SaveLoadManager.getAvailableSaves();
     if (!saves.isEmpty() && selectedSaveIndex >= 0 && selectedSaveIndex < saves.size()) {
       return saves.get(selectedSaveIndex);
     }

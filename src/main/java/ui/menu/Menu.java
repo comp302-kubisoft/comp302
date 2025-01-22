@@ -12,6 +12,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import ui.sound.SoundManager;
+import java.util.List;
+import domain.controller.SaveLoadManager;
 
 public class Menu {
   /** Currently selected menu option index */
@@ -42,6 +44,9 @@ public class Menu {
   private final SoundManager soundManager;
 
   private BufferedImage backgroundImage;
+
+  private int selectedSaveIndex = 0;
+  private List<String> availableSaves;
 
   public Menu(SoundManager soundManager) {
     this.selectedOption = 0;
@@ -177,5 +182,31 @@ public class Menu {
       }
     }
     return GameMode.MENU;
+  }
+
+  public void updateLoadScreen(boolean upPressed, boolean downPressed, boolean enterPressed) {
+    long currentTime = System.currentTimeMillis();
+    availableSaves = SaveLoadManager.getAvailableSaves();
+
+    if (currentTime - lastInputTime >= INPUT_DELAY) {
+        if (upPressed && selectedSaveIndex > 0) {
+            selectedSaveIndex--;
+            soundManager.playSFX(6);
+            lastInputTime = currentTime;
+        }
+        if (downPressed && selectedSaveIndex < availableSaves.size() - 1) {
+            selectedSaveIndex++;
+            soundManager.playSFX(6);
+            lastInputTime = currentTime;
+        }
+    }
+  }
+
+  public int getSelectedSaveIndex() {
+    return selectedSaveIndex;
+  }
+
+  public void resetSaveSelection() {
+    selectedSaveIndex = 0;
   }
 }
